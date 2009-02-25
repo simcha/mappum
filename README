@@ -42,7 +42,7 @@ Mappum.catalogue_add "CRM-ERP" do
     map p.email3 <=> c.emails[2]
 
     map p.phones(ERP::Phone)[] <=> c.phones[] do |a, b|
-      map a.number <=> b
+      map a.number <=> b.self
     end
 
     #TODO one to many

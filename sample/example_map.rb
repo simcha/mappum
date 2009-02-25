@@ -13,8 +13,8 @@ Mappum.catalogue_add "CRM-ERP" do
     map p.title <=> c.title
 
     #map with simple function call
-    map p.person_id << c.key.downcase 
-    map p.person_id.upcase >> c.key
+    map p.person_id << c.id.downcase
+    map p.person_id.upcase >> c.id
 
     #dictionary use
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
@@ -42,7 +42,11 @@ Mappum.catalogue_add "CRM-ERP" do
     map p.email3 <=> c.emails[2]
 
     map p.phones(ERP::Phone)[] <=> c.phones[] do |a, b|
-      map a.number <=> b
+      map a.number <=> b.self
+    end
+
+    map p.main_phone(ERP::Phone) <=> c.self do |a, b|
+      map a.number <=> b.main_phone
     end
 
     #TODO one to many

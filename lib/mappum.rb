@@ -13,8 +13,11 @@ module Mappum
   class Map
     def initialize
       @maps = []
+      @strip_empty = true
     end
-
+    def strip_empty?
+      @strip_empty
+    end
     def map(*attr, &block)
       mapa  = FieldMap.new(attr)
 
@@ -41,6 +44,7 @@ module Mappum
     def initialize(name)
       super()
       @name = name
+      @strip_empty = false
     end
     def [](clazz)
       #TODO optimize
@@ -55,6 +59,7 @@ module Mappum
       mapped = attr[0][0]
       if mapped.instance_of?(Array) then
         if(mapped[0]).instance_of?(Class)
+          @strip_empty = false
           @left = Field.new(nil,nil,mapped[0])
         else
           @left = mapped[0]
@@ -68,15 +73,6 @@ module Mappum
       if mapped.instance_of?(Hash) then
         @left = mapped.keys[0]
         @right = mapped.values[0]
-      end
-      #lone field with no subfield
-      if @left.mpun_field_definition.is_root
-        @left = Field.new(@left.mpun_field_definition, nil,
-          @left.mpun_field_definition.clazz)
-      end
-      if @right.mpun_field_definition.is_root
-        @right = Field.new(@right.mpun_field_definition, nil,
-          @right.mpun_field_definition.clazz)
       end
 
       if mapped.instance_of?(Hash) then
@@ -155,9 +151,18 @@ module Mappum
     def >> field
       {self => field}
     end
+    def type(*attr)
+      method_missing(:type, *attr)
+    end
+    def id(*attr)
+      method_missing(:id, *attr)
+    end
 
     def method_missing(symbol, *args)
       if @def.is_root
+        if(symbol == :self)
+          return  Field.new @def, nil, args[0]
+        end
         return Field.new @def, symbol, args[0]
       end
 

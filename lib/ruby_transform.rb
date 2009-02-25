@@ -15,11 +15,13 @@ module Mappum
         return object.send(field)
       end
     end
-    def transform(from, map=nil)
+    def transform(from, map=nil, to=nil)
 
       map ||= @map_catalogue[from.class]
 
-      to = map.to.clazz.new unless map.to.clazz.nil?
+      to ||= map.to.clazz.new unless map.to.clazz.nil?
+
+      all_nils = true
 
       map.maps.each do |sm|
         to_value = nil
@@ -35,7 +37,7 @@ module Mappum
             sm_v.to.is_array = false
             to_value = from_value.collect{|v| transform(v, sm_v)}
           else
-            to_value = transform(from_value, sm)
+            to_value = transform(from_value, sm, get(to, sm.to.name))
           end
 
         end
@@ -53,19 +55,28 @@ module Mappum
           to_array = get(to,sm.to.name)
           to_array ||= []
           to_array << to_value
+
+          all_nils = false unless to_array.nil?
+
           if sm.to.name.nil?
             to = to_array
           else
             to.send("#{sm.to.name}=", to_array)
           end
         else
+
+          all_nils = false unless to_value.nil?
+
           if sm.to.name.nil?
-            to = to_value
-          else
+            to ||= to_value
+          elsif 
             to.send("#{sm.to.name}=", to_value)
           end
         end
         
+      end
+      if all_nils and map.strip_empty?
+        return nil
       end
       return to
     end
