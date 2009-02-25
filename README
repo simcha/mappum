@@ -5,8 +5,6 @@ is provided below. More documentation will follow.
 
 Mappum.catalogue_add "CRM-ERP" do
 
-  #TODO fix to ERP::Person <=> CRM::Client
-
   map [ERP::Person, CRM::Client] do |p, c|
 
     #simple mapping
@@ -44,12 +42,6 @@ Mappum.catalogue_add "CRM-ERP" do
     map p.phones(ERP::Phone)[] <=> c.phones[] do |a, b|
       map a.number <=> b.self
     end
-
-    #TODO one to many
-    #map p.name << [c.first_name, c.surname] do |fname, surname|
-    #  fname + " " + surname
-    #end
-    #map p.name.split >> [c.first_name, c.surname]
 
   end
 end
