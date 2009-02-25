@@ -45,8 +45,10 @@ Mappum.catalogue_add "CRM-ERP" do
       map a.number <=> b.self
     end
 
+    #subobject to fields
     map p.main_phone(ERP::Phone) <=> c.self do |a, b|
       map a.number <=> b.main_phone
+      map a.type <=> b.main_phone_type
     end
 
     #TODO one to many

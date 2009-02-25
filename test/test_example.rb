@@ -58,8 +58,9 @@ class TestExample < Test::Unit::TestCase
     per.email2 = "k@k.com"
     per.email3 = "l@l.com"
     per.phones = [ERP::Phone.new("21311231"), ERP::Phone.new("21311232")]
-    per.main_phone = ERP::Phone.new("09876567")
-
+    per.main_phone = ERP::Phone.new
+    per.main_phone.number ="09876567"
+    per.main_phone.type = :mobile
 
     cli = rt.transform(per)
     assert_equal("sir", cli.title)
@@ -111,7 +112,7 @@ class TestExample < Test::Unit::TestCase
     per = ERP::Person.new
     per.email1 = "j@j.com"
     per.email3 = "l@l.com"
-
+    per.main_phone = ERP::Phone.new("7869876")
     cli = rt.transform(per)
     assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
 
