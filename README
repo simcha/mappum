@@ -23,6 +23,12 @@ Mappum.catalogue_add "CRM-ERP" do
       #etc.
     end
 
+    #subobject to fields
+    map p.main_phone(ERP::Phone) <=> c.self do |a, b|
+      map a.number <=> b.main_phone
+      map a.type <=> b.main_phone_type
+    end
+
     #compicated finc call
     map p.name >> c.surname do |name|
       name + "ski"
