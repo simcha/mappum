@@ -58,13 +58,14 @@ module Mappum
       super()
       mapped = attr[0][0]
       if mapped.instance_of?(Array) then
-        if(mapped[0]).instance_of?(Class)
+        if(mapped[0]).instance_of?(Class) or (mapped[0]).instance_of?(Symbol)
           @strip_empty = false
           @left = Field.new(nil,nil,mapped[0])
         else
           @left = mapped[0]
         end
-        if(mapped[1]).instance_of?(Class)
+        if(mapped[1]).instance_of?(Class) or (mapped[1]).instance_of?(Symbol)
+          @strip_empty = false
           @right = Field.new(nil,nil,mapped[1])
         else
           @right = mapped[1]

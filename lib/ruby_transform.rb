@@ -1,12 +1,21 @@
 # TODO docs
 require 'set'
 require 'mappum'
-
+require 'ostruct'
 
 module Mappum
+  class OpenStruct < OpenStruct
+    def type(*attr)
+      method_missing(:type, *attr)
+    end
+    def id(*attr)
+      method_missing(:id, *attr)
+    end
+  end
   class RubyTransform
     def initialize(map_catalogue)
       @map_catalogue = map_catalogue
+      @default_struct_class = Mappum::OpenStruct;
     end
     def get(object, field)
       if field.nil?
@@ -19,7 +28,7 @@ module Mappum
 
       map ||= @map_catalogue[from.class]
 
-      to ||= map.to.clazz.new unless map.to.clazz.nil?
+      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.instance_of?(Symbol)
 
       all_nils = true
 
@@ -61,6 +70,7 @@ module Mappum
           if sm.to.name.nil?
             to = to_array
           else
+            to ||= @default_struct_class.new
             to.send("#{sm.to.name}=", to_array)
           end
         else
@@ -69,8 +79,9 @@ module Mappum
 
           if sm.to.name.nil?
             to ||= to_value
-          elsif 
-            to.send("#{sm.to.name}=", to_value)
+          elsif
+            to ||= @default_struct_class.new
+            to.send("#{sm.to.name}=", to_value) unless to_value.nil?
           end
         end
         
