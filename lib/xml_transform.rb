@@ -3,18 +3,13 @@ require 'set'
 require 'mappum'
 require 'ostruct'
 require 'soap/marshal'
+require 'rubygems'
+gem 'builder'
+require 'builder'
+require 'xml'
 
 module Mappum
-  class OpenStruct < OpenStruct
-    include SOAP::Marshallable
-    def type(*attr)
-      method_missing(:type, *attr)
-    end
-    def id(*attr)
-      method_missing(:id, *attr)
-    end
-  end
-  class RubyTransform
+  class XmlTransform
     def initialize(map_catalogue)
       @map_catalogue = map_catalogue
       @default_struct_class = Mappum::OpenStruct;
@@ -23,18 +18,30 @@ module Mappum
       if field.nil?
         return object
       else
-        return object.send(field)
+        return object.content
       end
     end
-    def transform(from, map=nil, to=nil)
+    def transform(from_xml, map=nil)
+      from = XML::Parser.string(from_xml).parse.root
 
-      map ||= @map_catalogue[from.class]
+      builder ||= Builder::XmlMarkup.new
 
-      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.instance_of?(Symbol)
+      map ||= @map_catalogue[from.name]
+
+      doc = builder.tag!(map.to.clazz) { |to|
+        transform_inner(from, map, to)
+      }
+      return doc
+
+    end
+    def transform_inner(from_parent, map=nil, to=nil)
+
+      map ||= @map_catalogue[from_parent.name]
 
       all_nils = true
 
-      map.maps.each do |sm|
+      from_parent.each_element do |from|
+        sm = map[:name => from.name]
         to_value = nil
 
         from_value = get(from, sm.from.name)
@@ -46,9 +53,9 @@ module Mappum
             sm_v = sm.clone
             sm_v.from.is_array = false
             sm_v.to.is_array = false
-            to_value = from_value.collect{|v| transform(v, sm_v)}
+            #to_value = from_value.collect{|v| transform_inner(v, sm_v)}
           else
-            to_value = transform(from_value, sm, get(to, sm.to.name))
+            #to_value = transform_inner(from_value, sm, get(to, sm.to.name))
           end
 
         end
@@ -83,7 +90,9 @@ module Mappum
             to ||= to_value
           elsif
             to ||= @default_struct_class.new
-            to.send("#{sm.to.name}=", to_value) unless to_value.nil?
+            to.tag!(sm.to.name) do |to_obj|
+              to_obj.text!(to_value) unless to_value.nil?
+            end
           end
         end
         

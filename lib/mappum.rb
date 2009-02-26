@@ -38,6 +38,19 @@ module Mappum
     def tree(clazz)
       return Field.new nil, nil, clazz
     end
+    def [](var)
+      if var.instance_of?(Symbol) or var.instance_of?(Class)
+        #TODO optimize
+        return @maps.find{|m| m.from.clazz == var}
+      end
+      if var.instance_of?(Hash)
+        if var.keys[0] == :name
+          return @maps.find{|m| m.from.name == var.values[0].to_sym}
+        else
+          rise "not implemented"
+        end
+      end
+    end
   end
   class RootMap < Map
     attr_accessor :name
@@ -45,10 +58,6 @@ module Mappum
       super()
       @name = name
       @strip_empty = false
-    end
-    def [](clazz)
-      #TODO optimize
-      return @maps.find{|m| m.from.clazz == clazz}
     end
   end
   class FieldMap < Map
