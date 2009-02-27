@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<person>
+  <title>sir</title>
+  <person_id>asddsa</person_id>
+  <name>Skory</name>
+  <sex>M</sex>
+  <email1>j@j.com</email1>
+  <email2>k@k.com</email2>
+  <email3>l@l.com</email3>
+  <main_phone>
+    <number>09876567</number>
+    <type>mobile</type>
+  </main_phone>
+  <address>
+    <street>Victoria</street>
+  </address>
+  <phones>
+    <number>21311231</number>
+  </phones>
+  <phones>
+    <number>21311232</number>
+  </phones>
+</person>
