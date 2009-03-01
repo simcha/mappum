@@ -1,52 +1,56 @@
 == mappum
 
-Mappum is the tree to tree (object, bean etc.) mapping DSL. The example of usage
+Mappum is the tree to tree (object, bean etcli.) mapping DSL. The example of usage
 is provided below. More documentation will follow.
 
 Mappum.catalogue_add "CRM-ERP" do
 
-  map [ERP::Person, CRM::Client] do |p, c|
+  map ErpPerson <=> CrmClient do |per, cli|
 
-    #simple mapping
-    map p.title <=> c.title
+    # simple mapping
+    map per.title <=> cli.title
+    map per.name <=> cli.first_name
+    map per.surname <=> cli.surname
+    map per.age <=> cli.years
 
-    #map with simple function call
-    map p.person_id << c.key.downcase
-    map p.person_id.upcase >> c.key
+    # map with simple function call
+    map per.person_id << cli.key.downcase
+    map per.person_id.upcase >> cli.key
 
-    #dictionary use
-    map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
+    # dictionary use
+    map per.sex <=> cli.sex_id, :dict => {"F" => "1", "M" => "2"}
 
-    #submaps
-    map p.address(ERP::Address) <=> c.address(CRM::Address) do |a, b|
-      map a.street <=> b.street
-      #etc.
+    # submaps
+    map per.address(ErpAddress) <=> cli.address(CrmAddress) do |pa, ca|
+      map pa.street <=> ca.street
+      #etcli.
     end
 
-    #subobject to fields
-    map p.main_phone(ERP::Phone) <=> c.self do |a, b|
-      map a.number <=> b.main_phone
-      map a.type <=> b.main_phone_type
+    # subobject to fields
+    map per.main_phone(ErpPhone) <=> cli.self do |phone, client|
+      map phone.number <=> client.main_phone
+      map phone.type <=> client.main_phone_type
     end
 
-    #compicated finc call
-    map p.name >> c.surname do |name|
+    # compicated finc call
+    map per.name >> cli.surname do |name|
       name + "ski"
     end
-    map p.name << c.surname do |name|
+    map per.name << cli.surname do |name|
       if name =~ /ski/
         name[0..-4]
       else
         name
       end
     end
-    #field to array and array to field
-    map p.email1 <=> c.emails[0]
-    map p.email2 <=> c.emails[1]
-    map p.email3 <=> c.emails[2]
+    
+    # field to array and array to field
+    map per.email1 <=> cli.emails[0]
+    map per.email2 <=> cli.emails[1]
+    map per.email3 <=> cli.emails[2]
 
-    map p.phones(ERP::Phone)[] <=> c.phones[] do |a, b|
-      map a.number <=> b.self
+    map per.phones(ErpPhone)[] <=> cli.phones[] do |pp, cp|
+      map pp.number <=> cp.self
     end
 
   end
