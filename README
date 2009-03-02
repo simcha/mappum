@@ -3,7 +3,7 @@
 Mappum is the tree to tree (object, bean etcli.) mapping DSL. The example of usage
 is provided below. More documentation will follow.
 
-Mappum.catalogue_add "CRM-ERP" do
+class CrmErpMap < MappumMap
 
   map ErpPerson <=> CrmClient do |per, cli|
 
