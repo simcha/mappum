@@ -1,6 +1,6 @@
 == mappum
 
-Mappum is the tree to tree (object, bean etcli.) mapping DSL. The example of usage
+Mappum is the tree to tree (object, bean etc.) mapping DSL. The example of usage
 is provided below. More documentation will follow.
 
 class CrmErpMap < MappumMap
@@ -23,7 +23,8 @@ class CrmErpMap < MappumMap
     # submaps
     map per.address(ErpAddress) <=> cli.address(CrmAddress) do |pa, ca|
       map pa.street <=> ca.street
-      #etcli.
+      
+      #etc.
     end
 
     # subobject to fields
@@ -32,15 +33,15 @@ class CrmErpMap < MappumMap
       map phone.type <=> client.main_phone_type
     end
 
-    # compicated finc call
+    # compicated function call
     map per.name >> cli.surname do |name|
       name + "ski"
     end
-    map per.name << cli.surname do |name|
-      if name =~ /ski/
-        name[0..-4]
+    map per.name << cli.surname do |surname|
+      if surname =~ /ski/
+        surname[0..-4]
       else
-        name
+        surname
       end
     end
     

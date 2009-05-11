@@ -28,7 +28,16 @@ module Mappum
 
       map ||= @map_catalogue[from.class]
 
-      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.instance_of?(Symbol)
+      unless to.nil? and map.to.clazz.nil?
+        classes =  map.to.clazz.to_s.split("::")
+        puts "class", classes.inspect
+        
+        classes.each do |cls|
+          clazz ||= RubyTransform
+          clazz = clazz.const_get(cls)
+        end
+        to = clazz.new unless clazz.nl?
+      end
 
       all_nils = true
 

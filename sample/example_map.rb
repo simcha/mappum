@@ -1,13 +1,12 @@
 # Example of map for given object domains CRM and ERP
 require 'mappum'
-require 'sample/erp'
-require 'sample/crm'
 
-Mappum.catalogue_add "CRM-ERP" do
+#Mappum.catalogue_add "CRM-ERP" do
+class CrmErpMap < Mappum::RootMap
 
   #TODO fix to ERP::Person <=> CRM::Client
 
-  map [ERP::Person, CRM::Client] do |p, c|
+  map ERP::Person <=> CRM::Client do |p, c|
 
     #simple mapping
     map p.title <=> c.title

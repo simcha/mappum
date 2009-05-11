@@ -3,15 +3,16 @@ $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 require 'ruby_transform'
 require 'test/unit'
 require 'sample/example_map'
+require 'sample/erp'
+require 'sample/crm'
 
 class TestExample < Test::Unit::TestCase
   def test_map
-    catalogue = Mappum.catalogue("CRM-ERP")
+    
+    main_map = CrmErpMap[ERP::Person]
 
-    main_map = catalogue[ERP::Person]
-
-    assert_equal(ERP::Person, main_map.from.clazz)
-    assert_equal(CRM::Client, main_map.to.clazz)
+    assert_equal(ERP::Person.name.to_sym, main_map.from.clazz)
+    assert_equal(CRM::Client.name.to_sym, main_map.to.clazz)
     #assert_equal(5, main_map.maps.size)
 
     # check >>
@@ -28,7 +29,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal(:id, map_title.to.name)
     assert_equal(main_map.to, map_title.to.parent)
     
-    main_map = catalogue[CRM::Client]
+    main_map = CrmErpMap[CRM::Client]
     # check <<
     map_title = main_map.maps[0]
     assert_equal(:title, map_title.from.name)
@@ -44,8 +45,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal(main_map.to, map_title.to.parent)
   end
   def test_transform
-    catalogue = Mappum.catalogue("CRM-ERP")
-    rt = Mappum::RubyTransform.new(catalogue)
+    rt = Mappum::RubyTransform.new(CrmErpMap)
     
     per = ERP::Person.new
     per.title = "sir"
@@ -79,8 +79,7 @@ class TestExample < Test::Unit::TestCase
 
   end
   def test_transform_nil_array
-    catalogue = Mappum.catalogue("CRM-ERP")
-    rt = Mappum::RubyTransform.new(catalogue)
+    rt = Mappum::RubyTransform.new(CrmErpMap)
 
     per = ERP::Person.new
     per.title = "sir"
@@ -106,8 +105,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal(per, per2)
   end
   def test_transform_funny_array
-    catalogue = Mappum.catalogue("CRM-ERP")
-    rt = Mappum::RubyTransform.new(catalogue)
+    rt = Mappum::RubyTransform.new(CrmErpMap)
 
     per = ERP::Person.new
     per.email1 = "j@j.com"

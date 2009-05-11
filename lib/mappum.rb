@@ -11,6 +11,7 @@ module Mappum
     @catalogue[name]
   end
   class Map
+    attr_accessor :maps
     def initialize
       @maps = []
       @strip_empty = true
@@ -18,7 +19,15 @@ module Mappum
     def strip_empty?
       @strip_empty
     end
+    def self.const_missing(sym)
+      return ModulePlaceholder.new sym
+    end
+    def self.map(*attr, &block)
+      @mp ||= self.new(self.name)
+      @mp.map(*attr, &block)
+    end
     def map(*attr, &block)
+    
       mapa  = FieldMap.new(attr)
 
       if (not mapa.normalized?) && block_given?
@@ -33,10 +42,9 @@ module Mappum
       @maps += mapa.normalize
       return mapa
     end
-
-
-    def tree(clazz)
-      return Field.new nil, nil, clazz
+    def self.[](clazz)
+      @mp ||= self.new(self.name)
+      @mp[clazz]
     end
   end
   class RootMap < Map
@@ -48,25 +56,29 @@ module Mappum
     end
     def [](clazz)
       #TODO optimize
-      return @maps.find{|m| m.from.clazz == clazz}
+      if clazz.instance_of?(Class)
+        return @maps.find{|m| m.from.clazz == clazz.name.to_sym}
+      else
+        return @maps.find{|m| m.from.clazz == clazz}
+      end
     end
   end
   class FieldMap < Map
-    attr_accessor :dict, :maps, :left, :right, :func, :to, :from
+    attr_accessor :dict, :left, :right, :func, :to, :from
    
     def initialize(*attr)
       super()
       mapped = attr[0][0]
       if mapped.instance_of?(Array) then
-        if(mapped[0]).instance_of?(Class) or (mapped[0]).instance_of?(Symbol)
+        if(mapped[0]).instance_of?(ModulePlaceholder) or (mapped[0]).instance_of?(Symbol)
           @strip_empty = false
-          @left = Field.new(nil,nil,mapped[0])
+          @left = Field.new(nil,nil,mapped[0].to_sym)
         else
           @left = mapped[0]
         end
-        if(mapped[1]).instance_of?(Class) or (mapped[1]).instance_of?(Symbol)
+        if(mapped[1]).instance_of?(ModulePlaceholder) or (mapped[1]).instance_of?(Symbol)
           @strip_empty = false
-          @right = Field.new(nil,nil,mapped[1])
+          @right = Field.new(nil,nil,mapped[1].to_sym)
         else
           @right = mapped[1]
         end
@@ -117,7 +129,14 @@ module Mappum
       @parent = parent
     end
     def method_missing(symbol, *args)
-      return Field.new @parent, symbol, args[0]
+      clazz_name = nil
+      if args[0].instance_of?(Class)
+        clazz_name = args[0].name.to_sym
+      else
+        clazz_name = args[0].to_sym
+      end
+
+      return Field.new @parent, symbol, clazz_name
     end
   end
   class FieldDefinition < Struct.new(:name, :clazz, :parent, :func, :is_root, :is_array)
@@ -160,11 +179,18 @@ module Mappum
     end
 
     def method_missing(symbol, *args)
+      clazz_name = nil
+      if args[0].instance_of?(Class)
+        clazz_name = args[0].name.to_sym
+      elsif not args[0].nil?
+        clazz_name = args[0].to_sym
+      end
+
       if @def.is_root
         if(symbol == :self)
-          return  Field.new @def, nil, args[0]
+          return  Field.new @def, nil, clazz_name
         end
-        return Field.new @def, symbol, args[0]
+        return Field.new @def, symbol, clazz_name
       end
 
       if symbol == :[]
@@ -185,6 +211,24 @@ module Mappum
       end
 
       return self
+    end
+  end
+  class ModulePlaceholder < Module
+    def initialize(sym, parent=nil)
+      if parent.nil?
+        @name = sym
+      else
+        @name = "#{parent}::#{sym}".to_sym
+      end
+    end
+    def const_missing sym
+      ModulePlaceholder.new sym, @name
+    end
+    def <=> other_module
+      [self, other_module]
+    end
+    def to_sym
+     @name
     end
   end
 end
