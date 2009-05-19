@@ -5,7 +5,7 @@ is provided below. More documentation will follow.
 
 Mappum.catalogue_add "CRM-ERP" do
 
-  map [ERP::Person, CRM::Client] do |p, c|
+  map ERP::Person, CRM::Client do |p, c|
 
     #simple mapping
     map p.title <=> c.title
