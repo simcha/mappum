@@ -1,7 +1,6 @@
 # 
 # To change this template, choose Tools | Templates
 # and open the template in the editor.
- 
 
 require 'rubygems'
 require 'rake'
@@ -12,7 +11,7 @@ require 'rake/testtask'
 require 'spec/rake/spectask'
 
 spec = Gem::Specification.new do |s|
-  s.name = 'rupper'
+  s.name = 'mappum'
   s.version = '0.0.1'
   s.has_rdoc = true
   s.extra_rdoc_files = ['README', 'LICENSE']
