@@ -3,11 +3,9 @@ require 'mappum'
 require 'sample/person'
 require 'sample/client'
 
-Mappum.catalogue_add "CRM-ERP" do
+Mappum.catalogue_add "SOAP-CRM-ERP" do
 
-  #TODO fix to ERP::Person <=> CRM::Client
-
-  map [Person, Client] do |p, c|
+  map Person, Client do |p, c|
 
     #simple mapping
     map p.title <=> c.title

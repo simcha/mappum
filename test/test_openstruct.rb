@@ -6,7 +6,7 @@ require 'sample/example_notypes'
 
 class TestOpenStruct < Test::Unit::TestCase
   def test_map
-    catalogue = Mappum.catalogue("CRM-ERP")
+    catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
 
     main_map = catalogue[:person]
 
@@ -44,7 +44,7 @@ class TestOpenStruct < Test::Unit::TestCase
     assert_equal(main_map.to, map_title.to.parent)
   end
   def test_transform
-    catalogue = Mappum.catalogue("CRM-ERP")
+    catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
     
     per = Mappum::OpenStruct.new
@@ -85,7 +85,7 @@ class TestOpenStruct < Test::Unit::TestCase
 
   end
   def test_transform_nil_array
-    catalogue = Mappum.catalogue("CRM-ERP")
+    catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = Mappum::OpenStruct.new
@@ -111,7 +111,7 @@ class TestOpenStruct < Test::Unit::TestCase
     assert_equal(per, per2)
   end
   def test_transform_funny_array
-    catalogue = Mappum.catalogue("CRM-ERP")
+    catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = Mappum::OpenStruct.new

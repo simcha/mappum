@@ -1,5 +1,5 @@
 require 'xsd/mapping'
-require 'sample/person.rb'
+require 'sample/person'
 
 module SamplePersonMappingRegistry
   Registry = ::SOAP::Mapping::LiteralRegistry.new

@@ -2,11 +2,9 @@
 require 'mappum'
 
 
-Mappum.catalogue_add "CRM-ERP" do
+Mappum.catalogue_add "NOTYPE-CRM-ERP" do
 
-  #TODO fix to ERP::Person <=> CRM::Client
-
-  map [:person, :client] do |p, c|
+  map :person, :client do |p, c|
 
     #simple mapping
     map p.title <=> c.title

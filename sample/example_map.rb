@@ -5,9 +5,7 @@ require 'sample/crm'
 
 Mappum.catalogue_add "CRM-ERP" do
 
-  #TODO fix to ERP::Person <=> CRM::Client
-
-  map [ERP::Person, CRM::Client] do |p, c|
+  map ERP::Person, CRM::Client do |p, c|
 
     #simple mapping
     map p.title <=> c.title
@@ -15,7 +13,7 @@ Mappum.catalogue_add "CRM-ERP" do
     #map with simple function call
     map p.person_id << c.id.downcase
     map p.person_id.upcase >> c.id
-
+    
     #dictionary use
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
 
@@ -56,6 +54,14 @@ Mappum.catalogue_add "CRM-ERP" do
     #  fname + " " + surname
     #end
     #map p.name.split >> [c.first_name, c.surname]
-
+    map p.corporation << c.self do |client|
+      "#{client.company} #{client.company_suffix}" unless client.company.nil?
+    end
+    map p.corporation >> c.company do |corpo|
+      corpo.split(" ")[0]
+    end
+    map p.corporation >> c.company_suffix do |corpo|
+      corpo.split(" ")[1]
+    end
   end
 end

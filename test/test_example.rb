@@ -61,8 +61,9 @@ class TestExample < Test::Unit::TestCase
     per.main_phone = ERP::Phone.new
     per.main_phone.number ="09876567"
     per.main_phone.type = :mobile
-
+    per.corporation = "Corporation l.t.d."
     cli = rt.transform(per)
+    
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)

@@ -1,4 +1,4 @@
-require 'sample/person_mapping_registry.rb'
+require 'sample/person_mapping_registry'
 
 class SamplePersonMapper < XSD::Mapping::Mapper
   def initialize

@@ -27,7 +27,9 @@ module Mappum
     def transform(from, map=nil, to=nil)
 
       map ||= @map_catalogue[from.class]
-
+      
+      raise "Map for class \"#{from.class}\" not found!" if map.nil?
+      
       to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.instance_of?(Symbol)
 
       all_nils = true
@@ -64,23 +66,31 @@ module Mappum
           to_array = get(to,sm.to.name)
           to_array ||= []
           to_array << to_value
-
+          
+          if to_array.empty? and sm.strip_empty?
+            to_array = nil
+          end
+          
           all_nils = false unless to_array.nil?
 
           if sm.to.name.nil?
             to = to_array
           else
             to ||= @default_struct_class.new
-            to.send("#{sm.to.name}=", to_array)
+            to.send("#{sm.to.name}=", to_array) unless to_array.nil?
           end
         else
 
+          if to_value.respond_to?(:empty?) and to_value.empty? and sm.strip_empty?
+            to_value = nil
+          end
+          
           all_nils = false unless to_value.nil?
-
+                    
           if sm.to.name.nil?
             to ||= to_value
           elsif
-            to ||= @default_struct_class.new
+            to ||= @default_struct_class.new 
             to.send("#{sm.to.name}=", to_value) unless to_value.nil?
           end
         end
