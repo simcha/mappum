@@ -7,9 +7,9 @@ gem 'soap4r'
 gem 'facets'
 require 'facets/equatable'
 require 'soap/marshal'
-require 'sample/example_soap4r'
 require 'sample/person_mapper'
 require 'sample/client_mapper'
+require 'sample/example_soap4r'
 
 class Person
   include Equatable(:title, :person_id, :name, :surname, :sex, :email1, 

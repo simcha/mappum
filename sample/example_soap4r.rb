@@ -1,7 +1,4 @@
 # Example of map for given object domains CRM and ERP
-require 'mappum'
-require 'sample/person'
-require 'sample/client'
 
 Mappum.catalogue_add do
 
