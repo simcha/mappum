@@ -24,10 +24,11 @@ end
 
 class TestExample < Test::Unit::TestCase
   def test_xml_transform
-    catalogue = Mappum.catalogue
-    rt = Mappum::XmlTransform.new(catalogue)
+
     xml = IO.read("sample/person_fixture.xml")
 
+    rt = Mappum::XmlTransform.new
+        
     xml_cli = rt.transform(xml)
 
     xml2 = rt.transform(xml_cli)

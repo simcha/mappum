@@ -8,6 +8,7 @@ module Mappum
     @catalogue[name] ||= DSL::RootMap.new(name).make_definition(&block)
   end
   def self.catalogue(name = "ROOT")
+    name = "ROOT" if name.nil?
     @catalogue[name]
   end
   
