@@ -3,7 +3,6 @@ gem 'rack'
 require 'rack/request'
 require 'rack/response'
 gem 'soap4r'
-require 'wsdl/xmlSchema/xsd2ruby'
 require 'xml_transform'
 require 'soap/marshal'
 

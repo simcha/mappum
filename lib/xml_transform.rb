@@ -5,6 +5,7 @@ require 'soap/marshal'
 require 'xsd/mapping'
 gem 'libxml-ruby'
 require 'libxml'
+require 'wsdl/xmlSchema/xsd2ruby'
 
 class XSD::Mapping::Mapper
   attr_reader :registry
