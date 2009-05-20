@@ -3,7 +3,7 @@ require 'mappum'
 require 'sample/person'
 require 'sample/client'
 
-Mappum.catalogue_add "SOAP-CRM-ERP" do
+Mappum.catalogue_add do
 
   map Person, Client do |p, c|
 

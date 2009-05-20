@@ -1,6 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 #TODO fix imports
-require 'ruby_transform'
+require 'xml_transform'
 require 'test/unit'
 require 'rubygems'
 gem 'soap4r'
@@ -23,8 +23,21 @@ class Person::Address
 end
 
 class TestExample < Test::Unit::TestCase
+  def test_xml_transform
+    catalogue = Mappum.catalogue
+    rt = Mappum::XmlTransform.new(catalogue)
+    xml = IO.read("sample/person_fixture.xml")
+
+    xml_cli = rt.transform(xml)
+
+    xml2 = rt.transform(xml_cli)
+
+    assert_equal(xml.strip, xml2.strip)
+
+
+  end
   def test_transform
-    catalogue = Mappum.catalogue("SOAP-CRM-ERP")
+    catalogue = Mappum.catalogue
     rt = Mappum::RubyTransform.new(catalogue)
     personMapper = SamplePersonMapper.new
     
@@ -51,7 +64,7 @@ class TestExample < Test::Unit::TestCase
 
   end
   def test_transform_nil_array
-    catalogue = Mappum.catalogue("SOAP-CRM-ERP")
+    catalogue = Mappum.catalogue
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = Person.new
@@ -79,7 +92,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal(per, per2)
   end
   def test_transform_funny_array
-    catalogue = Mappum.catalogue("SOAP-CRM-ERP")
+    catalogue = Mappum.catalogue
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = Person.new

@@ -3,11 +3,11 @@ require 'set'
 require 'mappum_dsl'
 
 module Mappum
-  def self.catalogue_add(name, &block)
+  def self.catalogue_add(name = "ROOT", &block)
     @catalogue ||= {}
     @catalogue[name] ||= DSL::RootMap.new(name).make_definition(&block)
   end
-  def self.catalogue(name)
+  def self.catalogue(name = "ROOT")
     @catalogue[name]
   end
   

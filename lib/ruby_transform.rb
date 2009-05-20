@@ -13,8 +13,9 @@ module Mappum
     end
   end
   class RubyTransform
-    def initialize(map_catalogue)
-      @map_catalogue = map_catalogue
+    def initialize(map_catalogue = nil)
+      @map_catalogue = map_catalogue if map_catalogue.kind_of?(Mappum::Map)
+      @map_catalogue ||= Mappum.catalogue(map_catalogue)
       @default_struct_class = Mappum::OpenStruct;
     end
     def get(object, field)
@@ -30,7 +31,7 @@ module Mappum
       
       raise "Map for class \"#{from.class}\" not found!" if map.nil?
       
-      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.instance_of?(Symbol)
+      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
 
       all_nils = true
 
