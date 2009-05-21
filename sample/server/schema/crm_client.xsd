@@ -11,8 +11,8 @@
         <xsd:element name="sex_id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         <xsd:element name="phones" type="xsd:string" minOccurs="0" maxOccurs="20"/>
         <xsd:element name="emails" type="xsd:string" minOccurs="0" maxOccurs="3"/>
-        <xsd:element name="main_phone" type="xsd:string" minOccurs="0" maxOccurs="3"/>
-        <xsd:element name="main_phone_type" type="xsd:string" minOccurs="0" maxOccurs="3"/>
+        <xsd:element name="main_phone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="main_phone_type" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         <xsd:element name="address" minOccurs="0" maxOccurs="1">
         <xsd:complexType>
           <xsd:sequence>

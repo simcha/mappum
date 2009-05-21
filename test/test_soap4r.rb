@@ -7,45 +7,45 @@ gem 'soap4r'
 gem 'facets'
 require 'facets/equatable'
 require 'soap/marshal'
-require 'sample/person_mapper'
-require 'sample/client_mapper'
-require 'sample/example_soap4r'
 
-class Person
+wl = Mappum::WorkdirLoader.new("sample/server/schema", "sample/server/tmp", "sample/server/map")
+wl.generate_and_require   
+
+class Erp::Person
   include Equatable(:title, :person_id, :name, :surname, :sex, :email1, 
     :email2, :email3, :main_phone, :address, :phones)
 end
-class Phone
+class Erp::Phone
   include Equatable(:number, :extension, :type)
 end
-class Person::Address
+class Erp::Person::Address
   include Equatable(:city, :street)
 end
 
 class TestExample < Test::Unit::TestCase
+   def initialize(*args)
+     super(*args)
+     @rt = Mappum::XmlTransform.new
+     @personMapper = Erp::ErpErp_personMapper.new
+     @clientMapper = Crm_clientMapper.new
+   end
   def test_xml_transform
-
+    
     xml = IO.read("sample/person_fixture.xml")
 
-    rt = Mappum::XmlTransform.new
-        
-    xml_cli = rt.transform(xml)
+    xml_cli = @rt.transform(xml)
 
-    xml2 = rt.transform(xml_cli)
+    xml2 = @rt.transform(xml_cli)
 
     assert_equal(xml.strip, xml2.strip)
 
-
   end
   def test_transform
-    catalogue = Mappum.catalogue
-    rt = Mappum::RubyTransform.new(catalogue)
-    personMapper = SamplePersonMapper.new
     
-     xml = IO.read("sample/person_fixture.xml")
-    parsed_person = personMapper.xml2obj(xml)
-
-    cli = rt.transform(parsed_person)
+    xml = IO.read("sample/person_fixture.xml")
+    clixml = @rt.transform(xml)
+    cli = @clientMapper.xml2obj(clixml)
+    
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)
@@ -56,39 +56,38 @@ class TestExample < Test::Unit::TestCase
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
 
-    per2 = rt.transform(cli)
-    clientMapper = SampleClientMapper.new
-    xml_cli = clientMapper.obj2xml(cli)
-    xml2 = personMapper.obj2xml(per2)
+    xml2 = @rt.transform(clixml)
+
     assert_equal(xml.strip, xml2.strip)
 
 
   end
   def test_transform_nil_array
-    catalogue = Mappum.catalogue
-    rt = Mappum::RubyTransform.new(catalogue)
-
-    per = Person.new
+ 
+    per = Erp::Person.new
     per.title = "sir"
     per.person_id = "asddsa"
     per.sex = "M"
     per.name = "Skory"
-    per.address = Person::Address.new
+    per.address = Erp::Person::Address.new
     per.address.street = "Victoria"
-
-
-
-    cli = rt.transform(per)
+    per.phones = nil
+    
+    perxml = @personMapper.obj2xml(per)
+    clixml = @rt.transform(perxml)
+    cli = @clientMapper.xml2obj(clixml)
+    
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)
     assert_equal("Skoryski", cli.surname)
     assert_equal(Client::Address, cli.address.class)
     assert_equal("Victoria", cli.address.street)
-    # TODO fix [] issue in soap
-    # assert_nil(cli.phones)
-    # assert_nil(cli.main_phone)
-    per2 = rt.transform(cli)
+    assert_nil(cli.phones)
+    assert_nil(cli.main_phone)
+    per2xml = @rt.transform(clixml)
+    
+    per2 = @personMapper.xml2obj(per2xml)
     
     assert_equal(per, per2)
   end
@@ -96,10 +95,10 @@ class TestExample < Test::Unit::TestCase
     catalogue = Mappum.catalogue
     rt = Mappum::RubyTransform.new(catalogue)
 
-    per = Person.new
+    per = Erp::Person.new
     per.email1 = "j@j.com"
     per.email3 = "l@l.com"
-    per.main_phone = Phone.new("7869876")
+    per.main_phone = Erp::Phone.new("7869876")
     cli = rt.transform(per)
     assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
 
