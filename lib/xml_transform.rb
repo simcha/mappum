@@ -186,7 +186,7 @@ module Mappum
       classdef = file_name[0..-5]
       classdef = File.join(module_path,classdef) unless module_path.nil?
       
-      opt = {"classdef" => classdef, "mapping_registry"  => "", "mapper" => ""}
+      opt = {"classdef" => classdef, "mapping_registry"  => "", "mapper" => "", "force" => ""}
       opt["module_path"] = modname unless modname.nil?
       worker.opt.update(opt)
       worker.run
