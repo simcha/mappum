@@ -3,8 +3,7 @@ require 'rubygems'
 gem 'soap4r'
 require 'soap/marshal'
 require 'xsd/mapping'
-gem 'libxml-ruby'
-require 'libxml'
+require 'rexml/parsers/sax2parser'
 require 'wsdl/xmlSchema/xsd2ruby'
 
 class XSD::Mapping::Mapper
@@ -78,9 +77,15 @@ module Mappum
     end
     private
     def qname_from_root(from_xml)
-      reader = LibXML::XML::Reader.string(from_xml)
-      reader.read
-      return XSD::QName.new(reader.namespace_uri, reader.name)
+      reader = REXML::Parsers::SAX2Parser.new(from_xml)
+      retqname = nil
+      #TODO optimize: quit after root
+      reader.listen(:start_element) do |uri, localname, qname, attributes|
+        retqname ||= XSD::QName.new(uri, localname)
+      end
+
+      reader.parse
+      return retqname
     end
   end
   # Class supporting loading working directory of the layout:
