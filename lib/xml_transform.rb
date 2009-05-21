@@ -3,7 +3,6 @@ require 'rubygems'
 gem 'soap4r'
 require 'soap/marshal'
 require 'xsd/mapping'
-require 'rexml/parsers/sax2parser'
 require 'wsdl/xmlSchema/xsd2ruby'
 
 class XSD::Mapping::Mapper
@@ -51,6 +50,16 @@ end
 module Mappum
   class XmlTransform
     def initialize(map_catalogue = nil)
+      #choose parser
+      begin
+        gem 'libxml-ruby'
+        require 'libxml'
+        @parser = :libxml
+      rescue Gem::LoadError
+        require 'rexml/parsers/sax2parser'
+        @parser = :rexml
+      end
+      
       @ruby_transform = RubyTransform.new(map_catalogue)
     end
     def transform(from_xml, from_qname=nil, map=nil)
@@ -76,7 +85,11 @@ module Mappum
       return to_xml
     end
     private
-    def qname_from_root(from_xml)
+    def qname_from_root(xml)
+      return qname_from_root_libxml(xml) if @parser == :libxml
+      return qname_from_root_rexml(xml)
+    end
+    def qname_from_root_rexml(from_xml)
       reader = REXML::Parsers::SAX2Parser.new(from_xml)
       retqname = nil
       #TODO optimize: quit after root
@@ -86,6 +99,11 @@ module Mappum
 
       reader.parse
       return retqname
+    end
+    def qname_from_root_libxml(from_xml)
+      reader = LibXML::XML::Reader.string(from_xml)
+      reader.read
+      return XSD::QName.new(reader.namespace_uri, reader.name)
     end
   end
   # Class supporting loading working directory of the layout:
