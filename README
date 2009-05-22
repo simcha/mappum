@@ -29,7 +29,7 @@ Mappum.catalogue_add "CRM-ERP" do
       map a.type <=> b.main_phone_type
     end
 
-    #compicated finc call
+    #compilcated function call
     map p.name >> c.surname do |name|
       name + "ski"
     end
