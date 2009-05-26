@@ -13,16 +13,23 @@ module Mappum
     end
   end
   class RubyTransform
-    def initialize(map_catalogue = nil)
+    attr_accessor :map_catalogue
+    
+    def initialize(map_catalogue = nil, default_struct_class=nil)
       @map_catalogue = map_catalogue if map_catalogue.kind_of?(Mappum::Map)
       @map_catalogue ||= Mappum.catalogue(map_catalogue)
-      @default_struct_class = Mappum::OpenStruct;
+      @default_struct_class = default_struct_class
+      @default_struct_class ||= Mappum::OpenStruct;
     end
     def get(object, field)
       if field.nil?
         return object
-      else
+      elsif not object.kind_of?(@default_struct_class) or 
+        object.respond_to?(field)
         return object.send(field)
+      else
+        #for open structures field will be defined later
+        return nil
       end
     end
     def transform(from, map=nil, to=nil)

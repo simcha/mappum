@@ -4,6 +4,7 @@ gem 'soap4r'
 require 'soap/marshal'
 require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'
+require 'open_xml_object'
 
 class XSD::Mapping::Mapper
   attr_reader :registry
@@ -40,6 +41,7 @@ class XSD::Mapping::Mapper
  private
   def self.mappers
     @@mappers ||= []
+    @@mapper_classes ||= []
     if @@mapper_classes.size > @@mappers.size
       @@mappers = @@mapper_classes.collect{|k|k.new()}
     end
@@ -59,10 +61,10 @@ module Mappum
         require 'rexml/parsers/sax2parser'
         @parser = :rexml
       end
-      
-      @ruby_transform = RubyTransform.new(map_catalogue)
+      @default_mapper =  XSD::Mapping::Mapper.new(SOAP::Mapping::LiteralRegistry.new)
+      @ruby_transform = RubyTransform.new(map_catalogue, OpenXmlObject)
     end
-    def transform(from_xml, from_qname=nil, map=nil)
+    def transform(from_xml, map=nil, from_qname=nil, to_qname=nil)
       
       if from_qname.nil?
         from_qname = qname_from_root(from_xml)
@@ -70,18 +72,33 @@ module Mappum
       
       from_mapper = XSD::Mapping::Mapper.find_mapper_for_type(from_qname)
       if from_mapper.nil?
-        raise "QName \"#{from_qname}\" not registered for xml mapping. Missing require?"   
+         from_mapper = @default_mapper
       end
-       
+      map ||= @ruby_transform.map_catalogue[from_qname]
+      map ||= @ruby_transform.map_catalogue[from_qname.name.to_sym]
+      if not map.nil? and not map.kind_of?(Map)
+        map = @ruby_transform.map_catalogue[map.to_sym]
+      end
+     
       parsed = from_mapper.xml2obj(from_xml)
       
-      transformed = @ruby_transform.transform(parsed)
+      transformed = @ruby_transform.transform(parsed, map)
       
       to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
-      if from_mapper.nil?
-        raise "Class \"#{transformed.class}\" not registered for xml mapping. Missing require?"   
-      end     
-      to_xml = to_mapper.obj2xml(transformed)
+      if to_mapper.nil?
+        to_mapper = @default_mapper
+      end
+
+      if transformed.kind_of?(OpenXmlObject) and to_qname.nil? and not map.nil?
+        to = map.to
+        if to.clazz.kind_of?(XSD::QName)
+          to_qname = to.clazz
+        else
+          to_qname = XSD::QName.new(nil, to.clazz.to_s)
+        end
+      end
+      
+      to_xml = to_mapper.obj2xml(transformed,to_qname)
       return to_xml
     end
     private

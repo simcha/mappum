@@ -49,7 +49,7 @@ HTML
   end
 end
 
-if $0 == __FILE__
+if File.basename($0) == File.basename(__FILE__)
   require 'rack'
   require 'rack/showexceptions'
   Rack::Handler::WEBrick.run \
