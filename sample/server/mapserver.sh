@@ -1,1 +1,1 @@
-ruby -I../../lib ../../lib/mapserver.rb
+ruby ../../bin/mapserver.rb
