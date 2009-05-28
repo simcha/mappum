@@ -5,7 +5,8 @@ require 'mappum_dsl'
 module Mappum
   def self.catalogue_add(name = "ROOT", &block)
     @catalogue ||= {}
-    @catalogue[name] ||= DSL::RootMap.new(name).make_definition(&block)
+    @catalogue[name] ||= RootMap.new(name)
+    @catalogue[name].maps += DSL::RootMap.new(name).make_definition(&block).maps
   end
   def self.catalogue(name = "ROOT")
     name = "ROOT" if name.nil?
@@ -25,7 +26,9 @@ module Mappum
     def strip_empty?
       @strip_empty
     end
-    
+    def list_maps
+      @maps.collect{|m|m.from.clazz}
+    end
   end
   
   
