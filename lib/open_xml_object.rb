@@ -9,7 +9,7 @@ end
 
 class OpenXmlObject < SOAP::Mapping::Object
   def method_missing(sym, *args, &block)
-    if sym.to_s.end_with?("=")
+    if sym.to_s[-1..-1] == "=" then
        __add_xmlele_from_method(sym.to_s[0..-2],args[0])        
     else  
       super(sym, *args, &block)
