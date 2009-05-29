@@ -12,6 +12,14 @@ module Mappum
       method_missing(:id, *attr)
     end
   end
+  class MapMissingException < RuntimeError
+    attr_accessor :from
+    def initialize(from, msg=nil)
+      msg ||= "Map for class \"#{from.class}\" not found!"
+      super(msg)
+      @from = from
+    end
+  end
   class RubyTransform
     attr_accessor :map_catalogue
     
@@ -36,7 +44,7 @@ module Mappum
 
       map ||= @map_catalogue[from.class]
       
-      raise "Map for class \"#{from.class}\" not found!" if map.nil?
+      raise MapMissingException.new(from) if map.nil?
       
       to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
 

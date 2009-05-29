@@ -26,9 +26,6 @@ module Mappum
     def strip_empty?
       @strip_empty
     end
-    def list_maps
-      @maps.collect{|m|m.from.clazz}
-    end
   end
   
   
@@ -41,7 +38,15 @@ module Mappum
     end
     def [](clazz)
       #TODO optimize
-      return @maps.find{|m| m.from.clazz == clazz}
+      mpa = @maps.find{|m| m.from.clazz == clazz or m.from.clazz.to_s == clazz.to_s }
+      return mpa unless mpa.nil?
+      return @maps.find{|m| "#{m.from.clazz}-to-#{m.to.clazz}" == clazz.to_s}
+    end
+    def list_map_names
+      list = []
+      list += @maps.collect{|m|m.from.clazz}
+      list += @maps.collect{|m| "#{m.from.clazz}-to-#{m.to.clazz}"}
+      return list
     end
   end
   

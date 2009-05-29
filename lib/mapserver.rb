@@ -16,13 +16,13 @@ class MapServlet
   def call(env)
     req = Rack::Request.new(env)
     if env["PATH_INFO"] == "/transform"
-      from = req.POST["from"]
+      map_name = nil
+      map_name = req.POST["map"] unless req.POST["map"].nil? or req.POST["map"] == "auto_select"
       
       rt = Mappum::XmlTransform.new(@catalogue)
       
       xml = req.POST["doc"]
-      qname = XSD::QName.new(nil,from) unless from.nil? or from == "auto_select"
-      content = rt.transform(xml,qname)
+      content = rt.transform(xml,map_name)
       
       [200, {"Content-Type" => "text/xml"}, content]
     else
@@ -30,18 +30,16 @@ class MapServlet
       <body>
       <FORM action="transform" method="post">
          <P>
-        <select name="from">
+        <select name="map">
           <option value="auto_select" selected="true">auto select</option>
-        </select>
-        <select name="to">
-          <option value="auto_select" selected="true">auto select</option>
+          #{Mappum.catalogue(@catalogue).list_map_names.collect{|mn| "<option value='#{mn}'>#{mn}</option>"}}
         </select>
         <br/>
          <TEXTAREA name="doc" rows="20" cols="80"></TEXTAREA><br/>
          <INPUT type="submit" value="Send"/><INPUT type="reset"/>
          </P>
       </FORM>
-
+      <BR/>
       </body>
 HTML
       [404, {"Content-Type" => "text/html"}, content404]

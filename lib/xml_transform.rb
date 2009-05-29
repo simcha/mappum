@@ -82,7 +82,15 @@ module Mappum
      
       parsed = from_mapper.xml2obj(from_xml)
       
-      transformed = @ruby_transform.transform(parsed, map)
+      begin
+        transformed = @ruby_transform.transform(parsed, map)
+      rescue MapMissingException => e
+        if e.from == parsed
+          raise MapMissingException.new(e.from,"Map for element \"#{from_qname}\" not found!")
+        else
+          raise e
+        end
+      end
       
       to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
       if to_mapper.nil?

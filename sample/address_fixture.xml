@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<address>
+  <country>poland</country>
+  <zip_code>01-217</zip_code>
+  <city>Warsaw</city>
+  <street>Kolejowa</street>
+  <house>
+  	<number>5/7</number>
+  	<flat>1</flat>
+  </house>
+</address>
