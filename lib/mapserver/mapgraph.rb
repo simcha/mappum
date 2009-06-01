@@ -4,7 +4,9 @@ module Mappum
           def initialize(map)
             @map = map
             @struct_from = StrTree.new(nil,0)
+            @struct_from.name = "struct1"
             @struct_to = StrTree.new(nil,0)
+            @struct_to.name = "struct2"
             @edges = []
             init(@map,@struct_from, @struct_to)
           end
@@ -23,7 +25,7 @@ module Mappum
             str2 = makeStruct(@struct_to)
             edge = @edges.join
             return <<DOT
-digraph structs { node [shape=plaintext]; rankdir=LR;       
+digraph structs { node [shape=plaintext]; rankdir=LR;  nodesep=0.1;    
  struct1 [
              label=<
               #{str1}
@@ -55,9 +57,13 @@ DOT
             return str
           end
           def init(map, struct_from, struct_to)
-            to_name, to_path, level_to = get_name_and_path(map.to)
-            from_name, from_path, level_from = get_name_and_path(map.from)
-              str_from = StrTree.new(struct_from,level_from)
+
+            map_from, map_to = map.left, map.right
+
+            to_name, to_path, level_to = get_name_and_path(map_to) 
+            from_name, from_path, level_from = get_name_and_path(map_from)
+
+            str_from = StrTree.new(struct_from,level_from)
             unless from_name.nil?
               str_from.line = "<TR> <TD COLSPAN=\"2\" PORT=\"#{from_path}\">#{from_name}</TD></TR>\n"
             end
@@ -65,16 +71,32 @@ DOT
             unless to_name.nil?
               str_to.line ="<TR> <TD COLSPAN=\"2\" PORT=\"#{to_path}\">#{to_name}</TD></TR>\n"              
             end
-
-            unless map.maps.empty?
-              map.maps.each do |sub_map|
-                init(sub_map, str_from, str_to)
+            maps = []
+            if  map.normalized?
+              maps = map.maps
+            else
+              maps = map.bidi_maps
+            end
+            
+            
+            unless maps.empty?
+              maps.each do |sub_map|
+                if(sub_map.left.parent == map_from)
+                  init(sub_map, str_from, str_to)
+                else
+                  init(sub_map, str_to, str_from)
+                end
               end
             else
               # as option? labelfloat=true 
-              edge = "struct1:#{from_path} -> struct2:#{to_path} [arrowtail = none arrowhead = vee "
-              edge += " URL=\"www.ww/ss#{@edges.size+1}\" fontsize=6 "
-              edge += " label=\"#{@edges.size+1}\"  tooltip=\"2\" color=\"black\"];\n"
+              edge = "#{str_from.root.name}:#{from_path} -> #{str_to.root.name}:#{to_path} ["
+              if map.normalized?
+                edge += " arrowtail = none "
+              else 
+                edge += " arrowtail = vee "
+              end
+              edge += " arrowhead = vee URL=\"www.ww/ss#{@edges.size+1}\" fontsize=10 "
+              edge += " minlen=\"3\" label=\"#{@edges.size+1}\" tooltip=\"2\" color=\"black\"];\n"
               
               @edges << edge
             end
@@ -95,7 +117,7 @@ DOT
           end
       end 
       class StrTree
-       attr_accessor :line, :parent,:children
+       attr_accessor :line, :parent,:children, :name
        def initialize(parent, level)
          @parent=parent
          @parent.add(self, level) unless parent.nil?
@@ -109,12 +131,16 @@ DOT
            @parent.add(child, level - 1)
          end
        end
+       def ==(other)
+         return false unless other.kind_of?(StrTree)
+         if @line == other.line and @parent == other.parent and @children == other.children
+           return true
+         end
+       end 
+       def root
+         return parent.root unless parent.nil?
+         return self         
+       end
       end
-      def ==(other)
-        return false unless other.kind_of?(StrTree)
-        if @line == other.line and @parent == other.parent and @children == other.children
-          return true
-        end
-      end  
   end  
 end

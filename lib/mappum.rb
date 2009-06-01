@@ -6,7 +6,10 @@ module Mappum
   def self.catalogue_add(name = "ROOT", &block)
     @catalogue ||= {}
     @catalogue[name] ||= RootMap.new(name)
-    @catalogue[name].maps += DSL::RootMap.new(name).make_definition(&block).maps
+    definition = DSL::RootMap.new(name).make_definition(&block)
+    @catalogue[name].maps += definition.maps
+    @catalogue[name].bidi_maps += definition.bidi_maps
+      
   end
   def self.catalogue(name = "ROOT")
     name = "ROOT" if name.nil?
@@ -16,10 +19,11 @@ module Mappum
   # Base Map class representing mapping betwean two or more types, properties etc.
   class Map
     
-    attr_accessor :maps, :strip_empty
+    attr_accessor :maps, :bidi_maps, :strip_empty
     
     def initialize
       @maps = []
+      @bidi_maps = []
       @strip_empty = true
     end
     # When value of mapped property is null remove property.
@@ -42,10 +46,23 @@ module Mappum
       return mpa unless mpa.nil?
       return @maps.find{|m| "#{m.from.clazz}-to-#{m.to.clazz}" == clazz.to_s}
     end
-    def list_map_names
+    def get_bidi_map(name)
+      #TODO optimize
+      mpa = @bidi_maps.find{|m| m.right.clazz == name or m.right.clazz.to_s == name.to_s }
+      mpa ||= @bidi_maps.find{|m| m.left.clazz == name or m.left.clazz.to_s == name.to_s }
+      return mpa unless mpa.nil?
+      
+      return @bidi_maps.find{|m| "#{m.left.clazz}-to-from-#{m.right.clazz}" == name.to_s}
+    end
+    def list_map_names(full_list = false)
       list = []
-      list += @maps.collect{|m|m.from.clazz}
       list += @maps.collect{|m| "#{m.from.clazz}-to-#{m.to.clazz}"}
+      list += @maps.collect{|m|m.from.clazz} if full_list
+      return list
+    end
+    def list_bidi_map_names
+      list = []
+      list += @bidi_maps.collect{|m| "#{m.left.clazz}-to-from-#{m.right.clazz}"}
       return list
     end
   end
@@ -62,8 +79,8 @@ module Mappum
       #if bidirectional
       if not normalized?
         map_l = self.clone
-        map_l.to = self.left.mpun_field_definition
-        map_l.from = self.right.mpun_field_definition
+        map_l.to = self.left
+        map_l.from = self.right
         map_l.maps = self.maps.select do |m|
           m.from.parent == map_l.from
         end
@@ -71,8 +88,8 @@ module Mappum
         map_l.dict = self.dict.invert unless self.dict.nil?
 
         map_r = self.clone
-        map_r.to = self.right.mpun_field_definition
-        map_r.from = self.left.mpun_field_definition
+        map_r.to = self.right
+        map_r.from = self.left
         map_r.maps = self.maps.select do |m|
           m.from.parent == map_r.from
         end

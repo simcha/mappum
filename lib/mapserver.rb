@@ -29,7 +29,8 @@ class Mappum::MapServlet
       [200, {"Content-Type" => "text/xml"}, content]
     elsif env["PATH_INFO"] == "/svggraph"
       map_name = req.GET["map"]
-      map = Mappum.catalogue(@catalogue)[map_name]
+      map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(@catalogue)[map_name]
       return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
       [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
@@ -48,7 +49,13 @@ class Mappum::MapServlet
          </P>
       </FORM>
       <BR/>
-      </body>
+      Bidirectional maps:<p>
+      #{Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| "<a href='/svggraph?map=#{mn}'>#{mn}</a><br/>"}}
+      </p>
+      <BR/>
+      Unidirectional maps:<p>
+      #{Mappum.catalogue(@catalogue).list_map_names.collect{|mn| "<a href='/svggraph?map=#{mn}'>#{mn}</a><br/>"}}
+      </p>     </body>
 HTML
       [404, {"Content-Type" => "text/html"}, content404]
     end

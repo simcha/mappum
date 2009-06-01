@@ -2,7 +2,6 @@ module Mappum
   module DSL
     class Map
       attr_accessor :def
-      
       def initialize
         @def = Mappum::Map.new
       end
@@ -10,15 +9,16 @@ module Mappum
         mapa  = FieldMap.new(attr)
   
         if (not mapa.def.normalized?) && block_given?
-          eval_right = mapa.def.right.clone
+          eval_right = mapa.mpun_right.clone
           eval_right.mpun_field_definition.is_root = true
-          eval_left = mapa.def.left.clone
+          eval_left = mapa.mpun_left.clone
           eval_left.mpun_field_definition.is_root = true
           mapa.instance_exec(eval_left, eval_right, &block)
         elsif block_given?
           mapa.def.func = block
         end 
         @def.maps += mapa.def.normalize
+        @def.bidi_maps << mapa.def
         return mapa.def
       end
   
@@ -37,6 +37,15 @@ module Mappum
       end
     end
     class FieldMap < Map
+      attr_accessor :mpun_left, :mpun_right
+      def mpun_left=(left_map_dsl)
+        @mpun_left=left_map_dsl
+        @def.left=left_map_dsl.mpun_field_definition
+      end
+      def mpun_right=(right_map_dsl)
+        @mpun_right=right_map_dsl
+        @def.right=right_map_dsl.mpun_field_definition
+      end
       def initialize(*attr)
         @def = Mappum::FieldMap.new
         type_size = 1
@@ -54,25 +63,25 @@ module Mappum
         if mapped.instance_of?(Array) then
           if(mapped[0]).instance_of?(Class) or (mapped[0]).instance_of?(Symbol)
             @def.strip_empty = false
-            @def.left = Field.new(nil,nil,mapped[0])
+            self.mpun_left = Field.new(nil,nil,mapped[0])
           else
-            @def.left = mapped[0]
+            self.mpun_left = mapped[0]
           end
           if(mapped[1]).instance_of?(Class) or (mapped[1]).instance_of?(Symbol)
             @def.strip_empty = false
-            @def.right = Field.new(nil,nil,mapped[1])
+            self.mpun_right = Field.new(nil,nil,mapped[1])
           else
-            @def.right = mapped[1]
+            self.mpun_right = mapped[1]
           end
         end
         if mapped.instance_of?(Hash) then
-          @def.left = mapped.keys[0]
-          @def.right = mapped.values[0]
+          self.mpun_left = mapped.keys[0]
+          self.mpun_right = mapped.values[0]
         end
   
         if mapped.instance_of?(Hash) then
-          @def.from = @def.left.mpun_field_definition
-          @def.to = @def.right.mpun_field_definition
+          @def.from = @def.left
+          @def.to = @def.right
         end
 
         @def.dict = attr[0][1][:dict] if attr[0].size > type_size
@@ -82,11 +91,10 @@ module Mappum
 
     
     class Field
-  
       def mpun_field_definition
         @def
       end
-  
+      
       def initialize(parent, name, clazz)
         @def =  Mappum::Field.new
         @def.parent = parent
