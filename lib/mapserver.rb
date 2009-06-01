@@ -5,9 +5,11 @@ require 'rack/response'
 gem 'soap4r'
 require 'xml_transform'
 require 'soap/marshal'
+require 'mapserver/mapgraph'
 
-
-class MapServlet
+module Mappum
+end
+class Mappum::MapServlet
   def initialize(schema_path='schema', map_path='map', catalogue=nil)
     wl = Mappum::WorkdirLoader.new(schema_path, "tmp", map_path)
     wl.generate_and_require
@@ -25,6 +27,12 @@ class MapServlet
       content = rt.transform(xml,map_name)
       
       [200, {"Content-Type" => "text/xml"}, content]
+    elsif env["PATH_INFO"] == "/svggraph"
+      map_name = req.GET["map"]
+      map = Mappum.catalogue(@catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
+      graph = Mappum::MapServer::Graph.new(map)
+      [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
     else
       content404 = <<HTML
       <body>
@@ -51,6 +59,6 @@ if File.basename($0) == File.basename(__FILE__)
   require 'rack'
   require 'rack/showexceptions'
   Rack::Handler::WEBrick.run \
-    Rack::ShowExceptions.new(Rack::Lint.new(MapServlet.new)),
+    Rack::ShowExceptions.new(Rack::Lint.new(Mappum::MapServlet.new)),
     :Port => 9292
 end
