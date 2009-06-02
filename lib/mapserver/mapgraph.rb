@@ -1,13 +1,15 @@
 module Mappum
   module MapServer
       class Graph
-          def initialize(map)
+        attr_reader :edge_maps  
+        def initialize(map)
             @map = map
             @struct_from = StrTree.new(nil,0)
             @struct_from.name = "struct1"
             @struct_to = StrTree.new(nil,0)
             @struct_to.name = "struct2"
             @edges = []
+            @edge_maps = {}
             init(@map,@struct_from, @struct_to)
           end
           def getSvg
@@ -19,6 +21,16 @@ module Mappum
             f.print(dot)
             f.close_write
             return f.readlines.join("\n")
+          end
+          def getPng
+            cmd = "dot"
+            format = "png"
+            xCmd = "#{cmd} -T#{format}"
+            dot = getDot
+            f = IO.popen( xCmd ,"r+")
+            f.print(dot)
+            f.close_write
+            return f
           end
           def getDot
             str1 = makeStruct(@struct_from)
@@ -91,14 +103,20 @@ DOT
               # as option? labelfloat=true 
               edge = "#{str_from.root.name}:#{from_path} -> #{str_to.root.name}:#{to_path} ["
               if map.normalized?
-                edge += " arrowtail = none "
+                edge += " arrowtail = none tooltip=\"#{from_name} >> #{to_name}\" "
               else 
-                edge += " arrowtail = vee "
+                edge += " arrowtail = vee tooltip=\"#{from_name} <=> #{to_name}\" "
               end
-              edge += " arrowhead = vee URL=\"www.ww/ss#{@edges.size+1}\" fontsize=10 "
-              edge += " minlen=\"3\" label=\"#{@edges.size+1}\" tooltip=\"2\" color=\"black\"];\n"
+              edge += " arrowhead = vee URL=\"##{@edges.size+1}\" fontsize=10 "
+              unless map.simple?
+                edge += " label=\"#{@edges.size+1}\" " 
+              end
+              edge += " minlen=\"3\" color=\"black\"];\n"
               
               @edges << edge
+              unless map.simple?
+                  @edge_maps[@edges.size] = map             
+              end
             end
 
           end

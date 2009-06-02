@@ -1,7 +1,9 @@
 # Example of map for given object domains CRM and ERP
 
 Mappum.catalogue_add do
-
+  `
+  Mapping Erp system Person to Crm Client
+  `
   map Erp::Person, Client do |p, c|
 
     #simple mapping
@@ -11,7 +13,7 @@ Mappum.catalogue_add do
     map p.person_id << c.id.downcase
     map p.person_id.upcase >> c.id
 
-    #dictionary use
+    `Map F to 1 and M to 2`
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
 
     #submaps
@@ -20,10 +22,11 @@ Mappum.catalogue_add do
       #etc.
     end
 
-    #compicated finc call
+    `Add 'ski' to name`
     map p.name >> c.surname do |name|
       name + "ski"
     end
+    `Remove "ski" from surname`
     map p.name << c.surname do |name|
       if name =~ /ski/
         name[0..-4]

@@ -68,7 +68,7 @@ module Mappum
   end
   
   class FieldMap < Map
-    attr_accessor :dict, :left, :right, :func, :to, :from
+    attr_accessor :dict, :desc, :left, :right, :func, :to, :from
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -98,6 +98,10 @@ module Mappum
       else
         [self]
       end
+    end
+    def simple?
+        @func.nil? && @dict.nil? && @desc.nil? && 
+          @maps.empty? && @bidi_maps.empty? && @right.func.nil? && @left.func.nil?
     end
   end
   class Tree

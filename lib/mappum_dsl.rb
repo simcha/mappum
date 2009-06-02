@@ -7,7 +7,10 @@ module Mappum
       end
       def map(*attr, &block)
         mapa  = FieldMap.new(attr)
-  
+        
+        mapa.def.desc = @comment
+        @comment = nil
+        
         if (not mapa.def.normalized?) && block_given?
           eval_right = mapa.mpun_right.clone
           eval_right.mpun_field_definition.is_root = true
@@ -21,7 +24,9 @@ module Mappum
         @def.bidi_maps << mapa.def
         return mapa.def
       end
-  
+      def `(str)
+        @comment = str
+      end
   
       def tree(clazz)
         return Field.new(nil, nil, clazz)
@@ -85,6 +90,8 @@ module Mappum
         end
 
         @def.dict = attr[0][1][:dict] if attr[0].size > type_size
+        @def.desc = attr[0][1][:desc] if attr[0].size > type_size
+        
       end   
     end
 

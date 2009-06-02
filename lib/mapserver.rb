@@ -15,6 +15,35 @@ class Mappum::MapServlet
     wl.generate_and_require
     @catalogue = catalogue
   end
+  def explain_func(element)
+    name = element.name.to_s
+    name ||= "self"    
+    func = element.func.gsub(/^self/,name)
+    #replace [](1) with [1]
+    func = func.gsub(/\.\[\]\((.*)\)/,"[\\1]")
+    return "Simple function call: \"#{func}\"<br/>"
+  end
+  def explain(map)
+    str=""
+    if not map.right.nil? and not map.right.func.nil?
+      str+= explain_func(map.right)
+    elsif not map.from.nil? and not map.from.func.nil?
+      str+= explain_func(map.from)
+    end
+    unless map.func.nil?
+      str+= "Multiline finction call (see source)<br/>"
+    end
+    unless map.dict.nil?
+      str+= "Dictionary mapping:<br/>"
+      str+= "<table border=\"1\">"
+      str+= "<tr><td>#{map.left.name}</td><td>#{map.right.name}</td></tr>"
+      map.dict.each do |k,v|
+        str+= "<tr><td>#{k}</td><td>#{v}</td></tr>"
+      end
+      str+= "</table>"
+    end
+    return str
+  end
   def call(env)
     req = Rack::Request.new(env)
     if env["PATH_INFO"] == "/transform"
@@ -34,6 +63,35 @@ class Mappum::MapServlet
       return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
       [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
+        
+    elsif env["PATH_INFO"] == "/pnggraph"
+      map_name = req.GET["map"]
+      map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(@catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, "No map '#{map_name}'"] if map.nil?
+      graph = Mappum::MapServer::Graph.new(map)
+      [200, {"Content-Type" => "image/png"}, graph.getPng]
+        
+    elsif env["PATH_INFO"] == "/doc"
+      map_name = req.GET["map"]
+      map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(@catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
+      graph = Mappum::MapServer::Graph.new(map)
+      text = <<HTML
+      <body>
+        <h1>#{map_name}</h1>
+        <p>
+        #{map.desc}
+        </p>
+        <object type="image/svg+xml" data="/svggraph?map=#{map_name}"><img src="/pnggraph?map=#{map_name}"></object>
+        <table border="1" cellspacing="0">
+        <tr><td>Number</td><td>Description</td><td>Technical explanation</td></tr>
+        #{graph.edge_maps.keys.sort.collect{|k| "<tr><td>#{k}</td><td>#{graph.edge_maps[k].desc}&nbsp;</td><td>#{explain(graph.edge_maps[k])}&nbsp;</td></tr>"}}
+        </table>
+      </body>
+HTML
+      [200, {"Content-Type" => "text/html"}, text]
     else
       content404 = <<HTML
       <body>
@@ -50,11 +108,11 @@ class Mappum::MapServlet
       </FORM>
       <BR/>
       Bidirectional maps:<p>
-      #{Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| "<a href='/svggraph?map=#{mn}'>#{mn}</a><br/>"}}
+      #{Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a><br/>"}}
       </p>
       <BR/>
       Unidirectional maps:<p>
-      #{Mappum.catalogue(@catalogue).list_map_names.collect{|mn| "<a href='/svggraph?map=#{mn}'>#{mn}</a><br/>"}}
+      #{Mappum.catalogue(@catalogue).list_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a><br/>"}}
       </p>     </body>
 HTML
       [404, {"Content-Type" => "text/html"}, content404]
