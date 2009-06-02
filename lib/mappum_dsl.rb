@@ -25,7 +25,8 @@ module Mappum
         return mapa.def
       end
       def `(str)
-        @comment = str
+        @comment ||= ""
+        @comment += str
       end
   
       def tree(clazz)
