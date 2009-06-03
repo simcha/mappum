@@ -69,9 +69,11 @@ DOT
             return str
           end
           def init(map, struct_from, struct_to)
-
-            map_from, map_to = map.left, map.right
-
+            if map.normalized?
+              map_from, map_to = map.from, map.to
+            else
+              map_from, map_to = map.left, map.right
+            end
             to_name, to_path, level_to = get_name_and_path(map_to) 
             from_name, from_path, level_from = get_name_and_path(map_from)
 
@@ -93,7 +95,7 @@ DOT
             
             unless maps.empty?
               maps.each do |sub_map|
-                if(sub_map.left.parent == map_from)
+                if(map.normalized? or sub_map.left.parent == map_from)
                   init(sub_map, str_from, str_to)
                 else
                   init(sub_map, str_to, str_from)
