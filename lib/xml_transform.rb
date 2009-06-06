@@ -1,6 +1,6 @@
 require 'ruby_transform'
 require 'rubygems'
-gem 'soap4r'
+#gem 'soap4r'
 require 'soap/marshal'
 require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'

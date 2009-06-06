@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema version="1.0" 
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:element name="client">
-    <xsd:complexType>
-      <xsd:sequence>
-        <xsd:element name="title" type="xsd:string" maxOccurs="1"/>
-        <xsd:element name="id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="first_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="sex_id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="phones" type="xsd:string" minOccurs="0" maxOccurs="20"/>
-        <xsd:element name="emails" type="xsd:string" minOccurs="0" maxOccurs="3"/>
-        <xsd:element name="main_phone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="main_phone_type" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="address" minOccurs="0" maxOccurs="1">
-        <xsd:complexType>
-          <xsd:sequence>
-            <xsd:element name="street" type="xsd:string"/>
-            <xsd:element name="city" type="xsd:string" minOccurs="0"/>
-          </xsd:sequence>
-        </xsd:complexType>
-        </xsd:element> 
-      </xsd:sequence> 
-    </xsd:complexType>
-  </xsd:element> 
-</xsd:schema>
+<schema version="1.0" 
+            xmlns="http://www.w3.org/2001/XMLSchema">
+  <element name="client">
+    <complexType>
+      <sequence>
+        <element name="title" type="xsd:string" maxOccurs="1"/>
+        <element name="id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="first_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="sex_id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="phones" type="xsd:string" minOccurs="0" maxOccurs="20"/>
+        <element name="emails" type="xsd:string" minOccurs="0" maxOccurs="3"/>
+        <element name="main_phone" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="main_phone_type" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <element name="address" minOccurs="0" maxOccurs="1">
+        <complexType>
+          <sequence>
+            <element name="street" type="xsd:string"/>
+            <element name="city" type="xsd:string" minOccurs="0"/>
+          </sequence>
+        </complexType>
+        </element> 
+      </sequence> 
+    </complexType>
+  </element> 
+</schema>
 
