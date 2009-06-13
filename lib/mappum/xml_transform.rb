@@ -1,10 +1,10 @@
-require 'ruby_transform'
+require 'mappum/ruby_transform'
 require 'rubygems'
 gem 'soap4r'
 require 'soap/marshal'
 require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'
-require 'open_xml_object'
+require 'mappum/open_xml_object'
 
 class XSD::Mapping::Mapper
   attr_reader :registry

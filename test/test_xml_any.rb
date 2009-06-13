@@ -1,6 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 #TODO fix imports
-require 'xml_transform'
+require 'mappum/xml_transform'
 require 'test/unit'
 require 'rubygems'
 gem 'soap4r'

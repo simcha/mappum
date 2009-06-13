@@ -1,6 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 #TODO fix imports
-require 'ruby_transform'
+require 'mappum/ruby_transform'
 require 'test/unit'
 require 'sample/example_map'
 
