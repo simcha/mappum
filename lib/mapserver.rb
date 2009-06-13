@@ -3,7 +3,7 @@ gem 'rack'
 require 'rack/request'
 require 'rack/response'
 gem 'soap4r'
-require 'xml_transform'
+require 'mappum/xml_transform'
 require 'soap/marshal'
 require 'mapserver/mapgraph'
 
