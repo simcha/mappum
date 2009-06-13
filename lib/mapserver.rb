@@ -31,7 +31,7 @@ class Mappum::MapServlet
       str+= explain_func(map.from)
     end
     unless map.func.nil?
-      str+= "Multiline finction call (see source)<br/>"
+      str+= "Multiline function call (see source)<br/>"
     end
     unless map.dict.nil?
       str+= "Dictionary mapping:<br/>"
@@ -55,20 +55,34 @@ class Mappum::MapServlet
       xml = req.POST["doc"]
       content = rt.transform(xml,map_name)
       
-      [200, {"Content-Type" => "text/xml"}, content]
+      [200, {"Content-Type" => "text/xml"}, [content]]
+    elsif env["PATH_INFO"] == "/transform_ws"
+            map_name = nil
+            map_name = req["SOAP_ACTION"] unless req["SOAP_ACTION"].nil? or req["SOAP_ACTION"] == ""
+            
+            rt = Mappum::XmlTransform.new(@catalogue)
+            
+            xml = env["rack.input"].read
+      start_time = Time.now
+
+
+            content = rt.transform(xml,map_name)
+      end_time = Time.now
+      puts end_time - start_time           
+            [200, {"Content-Type" => "text/xml"}, [content]]
     elsif env["PATH_INFO"] == "/svggraph"
       map_name = req.GET["map"]
       map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
       map ||= Mappum.catalogue(@catalogue)[map_name]
-      return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
-      [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
+      [200, {"Content-Type" => "image/svg+xml"}, [graph.getSvg]]
         
     elsif env["PATH_INFO"] == "/pnggraph"
       map_name = req.GET["map"]
       map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
       map ||= Mappum.catalogue(@catalogue)[map_name]
-      return [404,  {"Content-Type" => "text/html"}, "No map '#{map_name}'"] if map.nil?
+      return [404,  {"Content-Type" => "text/html"}, ["No map '#{map_name}'"]] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
       [200, {"Content-Type" => "image/png"}, graph.getPng]
         
@@ -76,7 +90,7 @@ class Mappum::MapServlet
       map_name = req.GET["map"]
       map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
       map ||= Mappum.catalogue(@catalogue)[map_name]
-      return [404,  {"Content-Type" => "text/html"}, "No map " + map_name] if map.nil?
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
       text = <<HTML
       <body>
@@ -91,7 +105,7 @@ class Mappum::MapServlet
         </table>
       </body>
 HTML
-      [200, {"Content-Type" => "text/html"}, text]
+      [200, {"Content-Type" => "text/html"}, [text]]
     else
       content404 = <<HTML
       <body>
@@ -115,7 +129,7 @@ HTML
       #{Mappum.catalogue(@catalogue).list_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a><br/>"}}
       </p>     </body>
 HTML
-      [404, {"Content-Type" => "text/html"}, content404]
+      [404, {"Content-Type" => "text/html"}, [content404]]
     end
   end
 end
