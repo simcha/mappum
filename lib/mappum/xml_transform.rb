@@ -5,6 +5,7 @@ require 'soap/marshal'
 require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'
 require 'mappum/open_xml_object'
+require 'tmpdir'
 
 class XSD::Mapping::Mapper
   attr_reader :registry
@@ -138,9 +139,10 @@ module Mappum
   # map/ - directory containing Mappum maps
   #
   class WorkdirLoader
-    def initialize(schema_path = "schema", basedir="tmp", map_dir="maps")
+    def initialize(schema_path = "schema", basedir=nil, map_dir="maps")
       @schema_path = schema_path
       @basedir = basedir
+      @basedir ||= Dir.mktmpdir
       @map_dir = map_dir
       @mapper_scripts = []
     end

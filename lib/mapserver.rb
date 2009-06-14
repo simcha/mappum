@@ -11,7 +11,7 @@ module Mappum
 end
 class Mappum::MapServlet
   def initialize(schema_path='schema', map_path='map', catalogue=nil)
-    wl = Mappum::WorkdirLoader.new(schema_path, "tmp", map_path)
+    wl = Mappum::WorkdirLoader.new(schema_path, nil, map_path)
     wl.generate_and_require
     @catalogue = catalogue
   end
