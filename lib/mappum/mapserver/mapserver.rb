@@ -2,7 +2,7 @@ require 'rubygems'
 gem 'soap4r'
 require 'mappum/xml_transform'
 require 'soap/marshal'
-require 'mapserver/mapgraph'
+require 'mappum/mapserver/mapgraph'
 require 'sinatra/base'
 
 module Mappum
