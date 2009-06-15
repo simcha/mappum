@@ -129,7 +129,7 @@ module Mappum
     def qname_from_root_libxml(from_xml)
       reader = LibXML::XML::Reader.string(from_xml)
       reader.read
-      return XSD::QName.new(reader.namespace_uri, reader.name)
+      return XSD::QName.new(reader.namespace_uri, reader.local_name)
     end
   end
   # Class supporting loading working directory of the layout:
