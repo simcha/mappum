@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="transfer-ws"
+  targetNamespace="http://mappum.ivmx.pl/transfer-ws/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:tns="http://mappum.ivmx.pl/transfer-ws/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  <%@xml_imports.each do |file, namespace|%>
+  xmlns:<%=get_xmlns(namespace)%>="<%=namespace%>"
+  <%end%>>
+  
+  <%@xml_imports.each do |file, namespace|%>
+    <wsdl:import namespace="<%=namespace%>"
+     location="<%=file%>"/>
+  <%end%>
+  <%@xml_elements.each do |qname|%>
+    <wsdl:message name="<%=qname.name%>">
+      <wsdl:part name="parameters" element="<%=get_xmlns(qname.namespace)%>:<%=qname.name%>"/>
+    </wsdl:message>
+  <%end%>  
+    <wsdl:message name="any">
+    <wsdl:part name="parameters" type="xsd:anyType"/>
+  </wsdl:message>
+  <wsdl:portType name="default">
+  <%@xml_maps.each do |name, from, to|%>
+    <wsdl:operation name="<%=name%>">
+      <wsdl:input message="tns:<%=from.name%>"/>
+      <wsdl:output message="tns:<%=to.name%>"/>
+    </wsdl:operation>
+  <%end%>
+  </wsdl:portType>
+  <wsdl:binding name="binding" type="tns:default">
+    <soap:binding style="document"
+      transport="http://schemas.xmlsoap.org/soap/http" />
+        <%@xml_maps.each do |name, from, to|%>
+            <wsdl:operation name="<%=name%>">
+              <soap:operation soapAction="<%=name%>" />
+              <wsdl:input>
+                <soap:body use="literal" />
+              </wsdl:input>
+              <wsdl:output>
+                <soap:body use="literal" />
+              </wsdl:output>
+            </wsdl:operation>
+        <%end%>
+  </wsdl:binding>
+  <wsdl:service name="transfer">
+    <wsdl:port name="http" binding="tns:binding">
+      <soap:address location="http://localhost:9292/transfer_ws" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
