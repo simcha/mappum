@@ -4,13 +4,16 @@ require 'mappum/xml_transform'
 require 'soap/marshal'
 require 'mappum/mapserver/mapgraph'
 require 'sinatra/base'
+require 'erb'
 
 module Mappum
   class Mapserver < Sinatra::Default
+    set :views => File.join(File.dirname(__FILE__), 'views')
     configure do
       set :schema_dir => 'schema', :map_dir => 'map', :tmp_dir => nil
       set :catalogue => nil
-      set :port => 9292    
+      set :port => 9292      
+
       # FIXME make configurable
       #wl = Mappum::WorkdirLoader.new(options.schema_dir, options.tmp_dir, options.map_dir)
       wl = Mappum::WorkdirLoader.new('schema', nil, "map")
@@ -46,6 +49,12 @@ module Mappum
         end
         return str
       end
+      def get_xmlns(namespace)
+        @namespaces ||= {}
+        @i ||= 0
+        @namespaces[namespace] = "ns#{@i+=1}" unless @namespaces.include?(namespace)
+        return @namespaces[namespace]
+      end
     end
     
     post "/transform" do
@@ -59,28 +68,54 @@ module Mappum
           
           [200, {"Content-Type" => "text/xml"}, [content]]
     end
-    get  "/transform_ws" do
-                map_name = nil
-                map_name = params["SOAP_ACTION"] unless params["SOAP_ACTION"].nil? or params["SOAP_ACTION"] == ""
-                
-                rt = Mappum::XmlTransform.new(options.catalogue)
-                
-                xml = env["rack.input"].read
-          start_time = Time.now
-    
-    
-                content = rt.transform(xml,map_name)
-          end_time = Time.now
-          puts end_time - start_time           
-                [200, {"Content-Type" => "text/xml"}, [content]]
+    post "/transform-ws" do
+      map_name = nil
+      map_name = params["SOAP_ACTION"] unless params["SOAP_ACTION"].nil? or params["SOAP_ACTION"] == ""
+      
+      rt = Mappum::XmlTransform.new(options.catalogue)
+      
+      xml = env["rack.input"].read
+      start_time = Time.now
+
+
+      content = rt.transform(xml,map_name)
+      end_time = Time.now
+      puts end_time - start_time           
+      [200, {"Content-Type" => "text/xml"}, [content]]
     end
+    get "/transform-ws.wsdl" do
+      @xml_imports = {
+        "file:///home/jtopinski/mapping/mappum/sample/server/schema/erp/erp_person.xsd" =>
+          "http://mappum.ivmx.pl/person",
+        "file:///home/jtopinski/mapping/mappum/sample/server/schema/crm_client.xsd" =>
+          "http://mappum.ivmx.pl/client",
+      }
+      @xml_maps = []
+      @xml_elements = Set.new
+      Mappum.catalogue(options.catalogue).list_map_names.each do |mapname|
+        map = Mappum.catalogue(options.catalogue)[mapname]
+        
+        from_qname = XSD::Mapping::Mapper.get_qname_from_class(map.from.clazz)
+        @xml_elements << from_qname unless from_qname.nil?
+        from_qname ||= XSD::QName.new(nil,"any")
+        
+        
+        to_qname = XSD::Mapping::Mapper.get_qname_from_class(map.to.clazz)
+        @xml_elements << to_qname unless to_qname.nil?
+        to_qname ||= XSD::QName.new(nil,"any")
+        
+        @xml_maps << [mapname, from_qname, to_qname]
+      end
+      
+      [200, {"Content-Type" => "text/xml"}, [erb(:'transform-ws.wsdl')]]    end
+
     get "/svggraph" do
-          map_name = params["map"]
-          map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
-          map ||= Mappum.catalogue(options.catalogue)[map_name]
-          return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
-          graph = Mappum::MapServer::Graph.new(map)
-          [200, {"Content-Type" => "image/svg+xml"}, [graph.getSvg]]
+      map_name = params["map"]
+      map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(options.catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
+      graph = Mappum::MapServer::Graph.new(map)
+      [200, {"Content-Type" => "image/svg+xml"}, [graph.getSvg]]
             
     end
     get "/pnggraph" do
@@ -138,8 +173,18 @@ HTML
 HTML
           [200, {"Content-Type" => "text/html"}, [content404]]
     end
+    def self.parseopt
+      require 'optparse'
+      OptionParser.new { |op|
+        op.on('-x')        {       set :lock, true }
+        op.on('-e env')    { |val| set :environment, val.to_sym }
+        op.on('-s server') { |val| set :server, val }
+        op.on('-p port')   { |val| set :port, val.to_i }
+      }.parse!
+    end
   end
 end
 if File.basename($0) == File.basename(__FILE__)
+    Mappum::Mapserver.parseopt
     Mappum::Mapserver.run!
 end

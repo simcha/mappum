@@ -26,7 +26,24 @@ class XSD::Mapping::Mapper
     end
     return ret_maper
   end
+  def self.get_qname_from_class(klass)
+    begin
+      klass = const_get(klass) if klass.instance_of?(Symbol)
+    rescue NameError
+      return nil
+    end
+    ret_qname = nil
+    #FIXME add cache
+    mappers.each do |mapper|
+      begin 
+        sch = mapper.registry.schema_definition_from_class klass
+        ret_qname =  sch.elename unless sch.nil?
+      rescue NoMethodError
+      end
+    end
+    return ret_qname
   
+  end
   def self.find_mapper_for_type(qname)
     ret_maper=nil
     #FIXME add cache
