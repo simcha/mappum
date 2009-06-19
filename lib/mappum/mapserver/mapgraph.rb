@@ -1,12 +1,13 @@
 module Mappum
   module MapServer
       class Graph
-        attr_reader :edge_maps  
+        attr_reader :edge_maps
         def initialize(map)
             @map = map
-            @struct_from = StrTree.new(nil,0)
+            @root = []
+            @struct_from = StrTree.new(nil,0,@root)
             @struct_from.name = "struct1"
-            @struct_to = StrTree.new(nil,0)
+            @struct_to = StrTree.new(nil,0,@root)
             @struct_to.name = "struct2"
             @edges = []
             @edge_maps = {}
@@ -16,7 +17,7 @@ module Mappum
             cmd = "dot"
             format = "svg"
             xCmd = "#{cmd} -T#{format}"
-            dot = getDot
+            puts dot = getDot
             f = IO.popen( xCmd ,"r+")
             f.print(dot)
             f.close_write
@@ -48,6 +49,7 @@ digraph structs { node [shape=plaintext]; rankdir=LR;  nodesep=0.1;
               #{str2}
              >
             ];
+            #{@root.collect { |struct| struct.line}}
             #{edge}
             
             }              
@@ -77,13 +79,21 @@ DOT
             to_name, to_path, level_to = get_name_and_path(map_to) 
             from_name, from_path, level_from = get_name_and_path(map_from)
 
-            str_from = StrTree.new(struct_from,level_from)
+            str_from = StrTree.new(struct_from,level_from, @root)
             unless from_name.nil?
-              str_from.line = "<TR> <TD COLSPAN=\"2\" PORT=\"#{from_path}\">#{from_name}</TD></TR>\n"
+              if level_from > -1
+                str_from.line = "<TR> <TD COLSPAN=\"2\" PORT=\"#{from_path}\">#{from_name}</TD></TR>\n"
+              else
+                str_from.line = "#{from_path} [ label = <#{from_name}>];\n"
+              end
             end
-            str_to = StrTree.new(struct_to,level_to)
+            str_to = StrTree.new(struct_to,level_to,@root)
             unless to_name.nil?
-              str_to.line ="<TR> <TD COLSPAN=\"2\" PORT=\"#{to_path}\">#{to_name}</TD></TR>\n"              
+              if level_to > -1
+                str_to.line ="<TR> <TD COLSPAN=\"2\" PORT=\"#{to_path}\">#{to_name}</TD></TR>\n"              
+              else
+                str_to.line = "#{to_path} [ label = <#{to_name}>];\n"
+              end
             end
             maps = []
             if  map.normalized?
@@ -95,7 +105,9 @@ DOT
             
             unless maps.empty?
               maps.each do |sub_map|
-                if(map.normalized? or sub_map.left.parent == map_from)
+                if(map.normalized? or sub_map.left.parent == map_from or 
+                  sub_map.right.parent == map_to)
+                
                   init(sub_map, str_from, str_to)
                 else
                   init(sub_map, str_to, str_from)
@@ -103,7 +115,11 @@ DOT
               end
             else
               # as option? labelfloat=true 
-              edge = "#{str_from.root.name}:#{from_path} -> #{str_to.root.name}:#{to_path} ["
+              from_ref = "#{str_from.root.name}:#{from_path}" if level_from > -1
+              to_ref = "#{str_to.root.name}:#{to_path}" if level_to > -1
+              from_ref ||= from_path
+              to_ref ||= to_path
+              edge = "#{from_ref} -> #{to_ref} [" 
               if map.normalized?
                 edge += " arrowtail = none tooltip=\"#{from_name} >> #{to_name}\" "
               else 
@@ -123,6 +139,14 @@ DOT
 
           end
           def get_name_and_path(element, level = 0)
+            #on non filed elements
+            if element.kind_of?(Function)
+              return "Function", "c#{element.__id__.abs}", -1              
+            end 
+            if element.kind_of?(Constant)
+              return element.value.to_s, "c#{element.__id__.abs}", -1              
+            end 
+          
             name = element.name
             if element.parent.nil?
               #root element
@@ -138,9 +162,10 @@ DOT
       end 
       class StrTree
        attr_accessor :line, :parent,:children, :name
-       def initialize(parent, level)
-         @parent=parent
-         @parent.add(self, level) unless parent.nil?
+       def initialize(parent, level, root)
+         @parent=parent  if level > -1
+         root << self if level == -1
+         @parent.add(self, level) unless @parent.nil?
        end
        
        def add(child, level=0)

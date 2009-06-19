@@ -18,7 +18,11 @@ Mappum.catalogue_add do
       map h.number <=> m.numero
       map h.flat <=> m.appartement 
     end
-  
+    `Current time`
+    map e.updated << func do
+      Time.now
+    end
+    map "oui" >> f.correct
   end
 
 end
