@@ -51,10 +51,13 @@ module Mappum
       all_nils = true
 
       map.maps.each do |sm|
-        to_value = nil
-
-        from_value = get(from, sm.from.name)
-
+        from_value, to_value = nil, nil
+        
+        if sm.from.respond_to?(:name)
+           from_value = get(from, sm.from.name) 
+        else
+           from_value = sm.from.value
+        end
         if sm.maps.empty?
           to_value = from_value
         elsif not from_value.nil?
@@ -68,7 +71,7 @@ module Mappum
           end
 
         end
-        unless sm.func.nil? or to_value.nil?
+        unless sm.func.nil? or (not sm.func_on_nil? and to_value.nil?)
           to_value = sm.func.call(to_value)
         end
         unless sm.from.func.nil? or to_value.nil?

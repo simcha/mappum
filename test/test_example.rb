@@ -29,6 +29,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal(main_map.to, map_title.to.parent)
     
     main_map = catalogue[CRM::Client]
+
     # check <<
     map_title = main_map.maps[0]
     assert_equal(:title, map_title.from.name)
@@ -49,6 +50,7 @@ class TestExample < Test::Unit::TestCase
     
     per = ERP::Person.new
     per.title = "sir"
+    per.type = "NaN"
     per.person_id = "asddsa"
     per.sex = "M"
     per.name = "Skory"
@@ -62,8 +64,9 @@ class TestExample < Test::Unit::TestCase
     per.main_phone.number ="09876567"
     per.main_phone.type = :mobile
     per.corporation = "Corporation l.t.d."
+    per.date_updated = Date.today
     cli = rt.transform(per)
-    
+  
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)
@@ -73,11 +76,12 @@ class TestExample < Test::Unit::TestCase
     assert_equal(["j@j.com", "k@k.com", "l@l.com"], cli.emails)
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
-
+    assert_equal("Last", cli.order_by)
+    assert(cli.updated.kind_of?(Time))
+    
+    
     per2 = rt.transform(cli)
     assert_equal(per, per2)
-
-
   end
   def test_transform_nil_array
     catalogue = Mappum.catalogue("CRM-ERP")
@@ -85,12 +89,13 @@ class TestExample < Test::Unit::TestCase
 
     per = ERP::Person.new
     per.title = "sir"
+    per.type = "NaN"
     per.person_id = "asddsa"
     per.sex = "M"
     per.name = "Skory"
     per.address = ERP::Address.new
     per.address.street = "Victoria"
-
+    per.date_updated = Date.today
 
 
     cli = rt.transform(per)
@@ -111,10 +116,14 @@ class TestExample < Test::Unit::TestCase
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = ERP::Person.new
+    per.type = "NaN"
     per.email1 = "j@j.com"
     per.email3 = "l@l.com"
     per.main_phone = ERP::Phone.new("7869876")
+    per.date_updated = Date.today
+    
     cli = rt.transform(per)
+    
     assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
 
     per2 = rt.transform(cli)

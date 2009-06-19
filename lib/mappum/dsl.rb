@@ -1,3 +1,9 @@
+class Object 
+  def >> field
+  return {Mappum::DSL::Constant.new(self) => field} if field.kind_of?(Mappum::DSL::Field)
+    throw "Constant can be mapped to field only"
+  end
+end
 module Mappum
   module DSL
     class Map
@@ -13,12 +19,13 @@ module Mappum
         
         if (not mapa.def.normalized?) && block_given?
           eval_right = mapa.mpun_right.clone
-          eval_right.mpun_field_definition.is_root = true
+          eval_right.mpun_definition.is_root = true
           eval_left = mapa.mpun_left.clone
-          eval_left.mpun_field_definition.is_root = true
+          eval_left.mpun_definition.is_root = true
           mapa.instance_exec(eval_left, eval_right, &block)
         elsif block_given?
           mapa.def.func = block
+          mapa.def.func_on_nil = true if mapa.mpun_left.kind_of?(Function)
         end 
         @def.maps += mapa.def.normalize
         @def.bidi_maps << mapa.def
@@ -28,7 +35,10 @@ module Mappum
         @comment ||= ""
         @comment += str
       end
-  
+      
+      def func
+        Mappum::DSL::Function.new        
+      end
       def tree(clazz)
         return Field.new(nil, nil, clazz)
       end
@@ -46,11 +56,11 @@ module Mappum
       attr_accessor :mpun_left, :mpun_right
       def mpun_left=(left_map_dsl)
         @mpun_left=left_map_dsl
-        @def.left=left_map_dsl.mpun_field_definition
+        @def.left=left_map_dsl.mpun_definition
       end
       def mpun_right=(right_map_dsl)
         @mpun_right=right_map_dsl
-        @def.right=right_map_dsl.mpun_field_definition
+        @def.right=right_map_dsl.mpun_definition
       end
       def initialize(*attr)
         @def = Mappum::FieldMap.new
@@ -95,14 +105,39 @@ module Mappum
         
       end   
     end
-
-
-    
-    class Field
-      def mpun_field_definition
+    #Base class for all mapped elements eg. fields, constants
+    class Mappet
+      def mpun_definition
         @def
       end
-      
+      def <=> field
+        [self, field]
+      end
+  
+      def << field
+        return {field => self} if field.kind_of?(Mappum::DSL::Mappet)
+        return {Constant.new(field) => self}
+      end
+  
+      def >> field
+        return {self => field}  if field.kind_of?(Mappum::DSL::Mappet)
+        throw "Must map to a field"
+      end
+    end
+    class Constant < Mappet
+      def initialize(value)
+        @def = Mappum::Constant.new
+        @def.value = value
+      end
+    end
+
+    class Function < Mappet
+      def initialize
+        @def = Mappum::Function.new
+      end
+    end
+    
+    class Field < Mappet
       def initialize(parent, name, clazz)
         @def =  Mappum::Field.new
         @def.parent = parent
@@ -112,17 +147,6 @@ module Mappum
         @def.is_root = false
       end
   
-      def <=> field
-        [self, field]
-      end
-  
-      def << field
-        {field => self}
-      end
-  
-      def >> field
-        {self => field}
-      end
       def type(*attr)
         method_missing(:type, *attr)
       end

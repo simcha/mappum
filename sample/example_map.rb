@@ -2,6 +2,7 @@
 require 'mappum'
 require 'sample/erp'
 require 'sample/crm'
+require 'date'
 
 Mappum.catalogue_add "CRM-ERP" do
 
@@ -62,6 +63,17 @@ Mappum.catalogue_add "CRM-ERP" do
     end
     map p.corporation >> c.company_suffix do |corpo|
       corpo.split(" ")[1]
+    end
+    #constants 
+    map p.type << "NaN"
+    map "Last" >> c.order_by
+    
+    #func 
+    map p.date_updated << func do
+      Date.today
+    end
+    map func >> c.updated do 
+      Time.now
     end
   end
 end

@@ -51,7 +51,7 @@ module Mappum
   end
   
   class FieldMap < Map
-    attr_accessor :dict, :desc, :left, :right, :func, :to, :from
+    attr_accessor :dict, :desc, :left, :right, :func, :to, :from, :func_on_nil
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -65,7 +65,7 @@ module Mappum
         map_l.to = self.left
         map_l.from = self.right
         map_l.maps = self.maps.select do |m|
-          m.from.parent == map_l.from
+          m.to.parent == map_l.to
         end
         
         map_l.dict = self.dict.invert unless self.dict.nil?
@@ -74,7 +74,7 @@ module Mappum
         map_r.to = self.right
         map_r.from = self.left
         map_r.maps = self.maps.select do |m|
-          m.from.parent == map_r.from
+          m.to.parent == map_r.to
         end
   
         [map_l, map_r]
@@ -85,6 +85,9 @@ module Mappum
     def simple?
         @func.nil? && @dict.nil? && @desc.nil? && 
           @maps.empty? && @bidi_maps.empty? && @right.func.nil? && @left.func.nil?
+    end
+    def func_on_nil?
+      @func_on_nil
     end
   end
   class Tree
@@ -102,5 +105,29 @@ module Mappum
       @is_array
     end
   end
-  
+  class Constant <  Struct.new(:value) 
+    def parent
+      nil
+    end
+    def array?
+      @value.kind_of?(Array)
+    end
+    def func
+      nil      
+    end
+  end
+  class Function
+    def parent
+      nil
+    end
+    def array?
+      false
+    end
+    def func
+      nil      
+    end
+    def value
+      nil
+    end
+  end
 end
