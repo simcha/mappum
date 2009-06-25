@@ -5,7 +5,7 @@ require 'test/unit'
 require 'sample/example_map'
 
 class TestExample < Test::Unit::TestCase
-  def test_map
+  def stest_map
     catalogue = Mappum.catalogue("CRM-ERP")
 
     main_map = catalogue[ERP::Person]
@@ -65,8 +65,11 @@ class TestExample < Test::Unit::TestCase
     per.main_phone.type = :mobile
     per.corporation = "Corporation l.t.d."
     per.date_updated = Date.today
+    per.spouse = ERP::Person.new
+    per.spouse.name = "Linda"
+    
     cli = rt.transform(per)
-  
+    
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)
@@ -77,13 +80,15 @@ class TestExample < Test::Unit::TestCase
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
     assert_equal("Last", cli.order_by)
+    assert_equal("Linda", cli.partners[0].name)
+    assert_equal("Linda", cli.partners[1].name)
     assert(cli.updated.kind_of?(Time))
     
     
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
-  def test_transform_nil_array
+  def stest_transform_nil_array
     catalogue = Mappum.catalogue("CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 
@@ -111,7 +116,7 @@ class TestExample < Test::Unit::TestCase
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
-  def test_transform_funny_array
+  def stest_transform_funny_array
     catalogue = Mappum.catalogue("CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 

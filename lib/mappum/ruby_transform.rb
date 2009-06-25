@@ -47,7 +47,7 @@ module Mappum
       raise MapMissingException.new(from) if map.nil?
       
       to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
-
+      
       all_nils = true
 
       map.maps.each do |sm|
@@ -58,6 +58,7 @@ module Mappum
         else
            from_value = sm.from.value
         end
+        
         if sm.maps.empty?
           to_value = from_value
         elsif not from_value.nil?
@@ -67,7 +68,11 @@ module Mappum
             sm_v.to.is_array = false
             to_value = from_value.collect{|v| transform(v, sm_v)}
           else
-            to_value = transform(from_value, sm, get(to, sm.to.name))
+            to ||= @default_struct_class.new
+            v_to = nil
+            #array values are assigned after return
+            v_to = get(to, sm.to.name) unless sm.to.is_array and not sm.from.is_array
+            to_value = transform(from_value, sm, v_to)
           end
 
         end
@@ -80,7 +85,6 @@ module Mappum
         unless sm.dict.nil?
           to_value = sm.dict[to_value]
         end
-
         if sm.to.is_array and not sm.from.is_array
           to_array = get(to,sm.to.name)
           to_array ||= []
@@ -110,6 +114,7 @@ module Mappum
             to ||= to_value
           elsif
             to ||= @default_struct_class.new 
+            
             to.send("#{sm.to.name}=", to_value) unless to_value.nil?
           end
         end

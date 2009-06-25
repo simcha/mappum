@@ -63,7 +63,7 @@ module Mappum
         @parser = :rexml
       end
       @default_mapper =  XSD::Mapping::Mapper.new(SOAP::Mapping::LiteralRegistry.new)
-      @ruby_transform = RubyTransform.new(map_catalogue, OpenXmlObject)
+      @ruby_transform = RubyXmlTransform.new(map_catalogue, OpenXmlObject)
     end
     def transform(from_xml, map=nil, from_qname=nil, to_qname=nil)
       
@@ -130,6 +130,18 @@ module Mappum
       reader = LibXML::XML::Reader.string(from_xml)
       reader.read
       return XSD::QName.new(reader.namespace_uri, reader.local_name)
+    end
+  end
+  class RubyXmlTransform < RubyTransform
+    def initialize(*args)
+      super(*args)
+    end
+    def get(object, field)
+      begin
+        super(object, field)
+      rescue NoMethodError
+        super(object, XSD::CodeGen::GenSupport.safemethodname(field.to_s).to_sym)
+      end
     end
   end
   # Class supporting loading working directory of the layout:

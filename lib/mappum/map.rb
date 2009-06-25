@@ -109,7 +109,7 @@ module Mappum
     def parent
       nil
     end
-    def array?
+    def is_array
       @value.kind_of?(Array)
     end
     def func

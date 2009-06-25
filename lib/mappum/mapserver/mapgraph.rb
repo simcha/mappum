@@ -84,7 +84,7 @@ DOT
               if level_from > -1
                 str_from.line = "<TR> <TD COLSPAN=\"2\" PORT=\"#{from_path}\">#{from_name}</TD></TR>\n"
               else
-                str_from.line = "#{from_path} [ label = <#{from_name}>];\n"
+                str_from.line = "#{from_path} [ label = <\"#{from_name}\">];\n"
               end
             end
             str_to = StrTree.new(struct_to,level_to,@root)
@@ -92,7 +92,7 @@ DOT
               if level_to > -1
                 str_to.line ="<TR> <TD COLSPAN=\"2\" PORT=\"#{to_path}\">#{to_name}</TD></TR>\n"              
               else
-                str_to.line = "#{to_path} [ label = <#{to_name}>];\n"
+                str_to.line = "#{to_path} [ label = <\"#{to_name}\">];\n"
               end
             end
             maps = []
@@ -127,9 +127,11 @@ DOT
               end
               edge += " arrowhead = vee URL=\"##{@edges.size+1}\" fontsize=10 "
               unless map.simple?
-                edge += " label=\"#{@edges.size+1}\" " 
+                edge += " label=\"#{@edges.size+1}\" labeltooltip = \"#{@edges.size+1}: #{from_name} >> #{to_name}\"" 
               end
-              edge += " minlen=\"3\" color=\"black\"];\n"
+              color = "black"
+              color = "blue" if level_to == -1 or level_from == -1
+              edge += " minlen=\"3\" color=\"#{color}\"];\n"
               
               @edges << edge
               unless map.simple?
