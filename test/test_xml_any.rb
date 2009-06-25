@@ -15,7 +15,7 @@ class TestXmlAny < Test::Unit::TestCase
   def test_xml_any
     catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
     rt = Mappum::XmlTransform.new(catalogue)
-    xml = IO.read("sample/person_fixture.xml")
+    xml = IO.read("sample/person_fixture_any.xml")
     client_xml =  rt.transform(xml)
 
     reg = ::SOAP::Mapping::LiteralRegistry.new()
@@ -30,12 +30,19 @@ class TestXmlAny < Test::Unit::TestCase
     assert_equal(["j@j.com", "k@k.com", "l@l.com"], cli.emails)
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
+    assert_equal({XSD::QName.new(nil,"ident") => "123212"}, cli.__xmlattr)
+    
+    person2_xml =  rt.transform(client_xml)
+    person =  XSD::Mapping::Mapper.new(reg).xml2obj(xml)
+    person2 =  XSD::Mapping::Mapper.new(reg).xml2obj(person2_xml)
+        
+    assert_equal(person, person2)
 
   end
   def test_xml_any_map_name
     catalogue = Mappum.catalogue("NOTYPE-CRM-ERP")
     rt = Mappum::XmlTransform.new(catalogue)
-    xml = IO.read("sample/person_fixture.xml")
+    xml = IO.read("sample/person_fixture_any.xml")
     client_xml =  rt.transform(xml, :person)
 
     reg = ::SOAP::Mapping::LiteralRegistry.new()

@@ -8,7 +8,7 @@ Mappum.catalogue_add "NOTYPE-CRM-ERP" do
 
     #simple mapping
     map p.title <=> c.title
-
+    
     #map with simple function call
     map p.person_id << c.id.downcase
     map p.person_id.upcase >> c.id
@@ -21,7 +21,10 @@ Mappum.catalogue_add "NOTYPE-CRM-ERP" do
       map a.street <=> b.street
       #etc.
     end
-
+    
+    #xml attributes
+    map p.xmlattr_id <=>  c.xmlattr_ident
+    
     #compicated finc call
     map p.name >> c.surname do |name|
       name + "ski"
