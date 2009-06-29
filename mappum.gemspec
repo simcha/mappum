@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
      "lib/mappum/open_xml_object.rb",
      "lib/mappum/ruby_transform.rb",
      "lib/mappum/xml_transform.rb",
+     "mappum.gemspec",
      "sample/address_fixture.xml",
      "sample/crm.rb",
      "sample/crm_client.xsd",
