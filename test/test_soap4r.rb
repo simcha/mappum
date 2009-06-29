@@ -8,7 +8,7 @@ gem 'facets'
 require 'facets/equatable'
 require 'soap/marshal'
 
-wl = Mappum::WorkdirLoader.new("sample/server/schema", "sample/server/tmp", "sample/server/map")
+wl = Mappum::WorkdirLoader.new("sample/server/schema", "sample/server/map")
 wl.generate_and_require   
 
 class Erp::Person

@@ -16,7 +16,7 @@ module Mappum
 
       # FIXME make configurable
       #wl = Mappum::WorkdirLoader.new(options.schema_dir, options.tmp_dir, options.map_dir)
-      @wl = Mappum::WorkdirLoader.new('schema', nil, "map")
+      @wl = Mappum::WorkdirLoader.new('schema', 'map')
       @wl.generate_and_require
     end
     helpers do

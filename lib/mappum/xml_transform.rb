@@ -176,7 +176,7 @@ module Mappum
   # map/ - directory containing Mappum maps
   #
   class WorkdirLoader
-    def initialize(schema_path = "schema", basedir=nil, map_dir="maps")
+    def initialize(schema_path = "schema", map_dir="maps", basedir=nil)
       @schema_path = schema_path
       @basedir = basedir
       @basedir ||= Dir.mktmpdir

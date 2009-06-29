@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<person>
+<n1:person xmlns:n1="http://mappum.ivmx.pl/person">
   <title>sir</title>
   <person_id>asddsa</person_id>
   <name>Skory</name>
@@ -20,4 +20,4 @@
   <phones>
     <number>21311232</number>
   </phones>
-</person>
+</n1:person>
