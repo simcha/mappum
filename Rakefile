@@ -5,31 +5,9 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
-require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rake/testtask'
 require 'spec/rake/spectask'
-
-spec = Gem::Specification.new do |s|
-  s.name = 'mappum'
-  s.version = '0.0.1'
-  s.has_rdoc = true
-  s.extra_rdoc_files = ['README', 'LICENSE']
-  s.summary = 'Your summary here'
-  s.description = s.summary
-  s.author = ''
-  s.email = ''
-  # s.executables = ['your_executable_here']
-  s.files = %w(LICENSE README Rakefile) + Dir.glob("{bin,lib,spec}/**/*")
-  s.require_path = "lib"
-  s.bindir = "bin"
-end
-
-Rake::GemPackageTask.new(spec) do |p|
-  p.gem_spec = spec
-  p.need_tar = true
-  p.need_zip = true
-end
 
 Rake::RDocTask.new do |rdoc|
   files =['README', 'LICENSE', 'lib/**/*.rb']
@@ -47,3 +25,22 @@ end
 Spec::Rake::SpecTask.new do |t|
   t.spec_files = FileList['spec/**/*.rb']
 end
+
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "mappum"
+    gemspec.summary = "Mappum is the tree to tree (object, bean etc.) mapping DSL."
+    gemspec.email = "jtopinski@chatka.org"
+    gemspec.homepage = "http://wiki.github.com/simcha/mappum"
+    gemspec.description = ""
+    gemspec.authors = ["Jan Topiński"]
+    gemspec.add_dependency('facets', '>= 2.5.2')
+    gemspec.add_dependency('soap4r', '>= 1.5.8')
+    gemspec.add_dependency('sinatra', '>= 0.9.2')
+    gemspec.add_dependency('thin', '>= 1.2.2')
+  end
+rescue LoadError
+  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+end
+
