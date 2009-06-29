@@ -26,7 +26,24 @@ class XSD::Mapping::Mapper
     end
     return ret_maper
   end
+  def self.get_qname_from_class(klass)
+    begin
+      klass = const_get(klass) if klass.instance_of?(Symbol)
+    rescue NameError
+      return nil
+    end
+    ret_qname = nil
+    #FIXME add cache
+    mappers.each do |mapper|
+      begin 
+        sch = mapper.registry.schema_definition_from_class klass
+        ret_qname =  sch.elename unless sch.nil?
+      rescue NoMethodError
+      end
+    end
+    return ret_qname
   
+  end
   def self.find_mapper_for_type(qname)
     ret_maper=nil
     #FIXME add cache
@@ -39,6 +56,23 @@ class XSD::Mapping::Mapper
     end
     return ret_maper
   end
+  def obj2soap(obj, elename = nil, io = nil)
+    opt = MAPPING_OPT.dup
+    unless elename
+      if definition = @registry.elename_schema_definition_from_class(obj.class)
+        elename = definition.elename
+        opt[:root_type_hint] = false
+      end
+    end
+    elename = SOAP::Mapping.to_qname(elename) if elename
+    soap = SOAP::Mapping.obj2soap(obj, @registry, elename, opt)
+    if soap.elename.nil? or soap.elename == XSD::QName::EMPTY
+      soap.elename =
+        XSD::QName.new(nil, SOAP::Mapping.name2elename(obj.class.to_s))
+    end
+    return soap
+  end
+
  private
   def self.mappers
     @@mappers ||= []
@@ -53,36 +87,44 @@ end
 module Mappum
   class XmlTransform
     def initialize(map_catalogue = nil)
-      #choose parser
-      begin
-        gem 'libxml-ruby'
-        require 'libxml'
-        @parser = :libxml
-      rescue Gem::LoadError
-        require 'rexml/parsers/sax2parser'
-        @parser = :rexml
-      end
       @default_mapper =  XSD::Mapping::Mapper.new(SOAP::Mapping::LiteralRegistry.new)
       @ruby_transform = RubyXmlTransform.new(map_catalogue, OpenXmlObject)
     end
-    def transform(from_xml, map=nil, from_qname=nil, to_qname=nil)
+    def transform(from_xml, map=nil, from_qname=nil, to_qname=nil, handle_soap=true)
+      soap = false
       
+      parser = SOAP::Parser.new(XSD::Mapping::Mapper::MAPPING_OPT)
+      preparsed = parser.parse(from_xml)
+
       if from_qname.nil?
-        from_qname = qname_from_root(from_xml)
+        from_qname = preparsed.elename
       end
       
+      if handle_soap and from_qname == XSD::QName.new("http://schemas.xmlsoap.org/soap/envelope/","Envelope")
+        soap = true
+        #for soap remove envelope
+        preparsed = preparsed.body.root_node
+        from_qname = preparsed.elename
+      end
+      
+            
       from_mapper = XSD::Mapping::Mapper.find_mapper_for_type(from_qname)
       if from_mapper.nil?
          from_mapper = @default_mapper
       end
+     
+      begin
+        parsed =SOAP::Mapping.soap2obj(preparsed, from_mapper.registry, nil)
+      rescue NoMethodError => e
+        raise ParsingFailedException.new("Parsing failed for xml with root element: #{from_qname}")
+      end
+
       map ||= @ruby_transform.map_catalogue[from_qname]
       map ||= @ruby_transform.map_catalogue[from_qname.name.to_sym]
       if not map.nil? and not map.kind_of?(Map)
         map = @ruby_transform.map_catalogue[map.to_sym]
       end
-     
-      parsed = from_mapper.xml2obj(from_xml)
-      
+
       begin
         transformed = @ruby_transform.transform(parsed, map)
       rescue MapMissingException => e
@@ -106,30 +148,13 @@ module Mappum
           to_qname = XSD::QName.new(nil, to.clazz.to_s)
         end
       end
-      
-      to_xml = to_mapper.obj2xml(transformed,to_qname)
-      return to_xml
-    end
-    private
-    def qname_from_root(xml)
-      return qname_from_root_libxml(xml) if @parser == :libxml
-      return qname_from_root_rexml(xml)
-    end
-    def qname_from_root_rexml(from_xml)
-      reader = REXML::Parsers::SAX2Parser.new(from_xml)
-      retqname = nil
-      #TODO optimize: quit after root
-      reader.listen(:start_element) do |uri, localname, qname, attributes|
-        retqname ||= XSD::QName.new(uri, localname)
+      to_preparsed = to_mapper.obj2soap(transformed,to_qname)
+      if soap == true 
+        to_preparsed = SOAP::SOAPEnvelope.new(SOAP::SOAPHeader.new, SOAP::SOAPBody.new(to_preparsed))
       end
-
-      reader.parse
-      return retqname
-    end
-    def qname_from_root_libxml(from_xml)
-      reader = LibXML::XML::Reader.string(from_xml)
-      reader.read
-      return XSD::QName.new(reader.namespace_uri, reader.local_name)
+      generator = SOAP::Generator.new(XSD::Mapping::Mapper::MAPPING_OPT)
+      to_xml = generator.generate(to_preparsed, nil)
+      return to_xml
     end
   end
   class RubyXmlTransform < RubyTransform
@@ -230,5 +255,44 @@ module Mappum
       worker.opt.update(opt)
       worker.run
     end
+  end
+  class XmlSupport
+    #choose parser
+    begin
+      gem 'libxml-ruby'
+      require 'libxml'
+      @@parser = :libxml
+    rescue Gem::LoadError
+      require 'rexml/parsers/sax2parser'
+      @@parser = :rexml
+    end
+    #
+    # Get target namespace from given xsd file
+    #
+    def self.get_target_ns(xsd_file)
+      return get_target_ns_libxml(xsd_file) if @@parser == :libxml
+      return get_target_ns_rexml(xsd_file)
+    end
+    def self.get_target_ns_rexml(xsd_file)
+      reader = REXML::Parsers::SAX2Parser.new(File.new(xsd_file))
+      namespace = nil
+      #FIXME: quit after root
+      reader.listen(:start_element) do |uri, localname, qname, attributes|
+        namespace ||= attributes["targetNamespace"]
+      end
+
+      reader.parse
+      return namespace
+    end
+    def self.get_target_ns_libxml(xsd_file)
+      reader = LibXML::XML::Reader.file(xsd_file)
+      reader.read
+      reader.move_to_attribute("targetNamespace")
+      namespace = reader.value
+      reader.close
+      return namespace 
+    end
+  end  
+  class ParsingFailedException  < RuntimeError    
   end
 end

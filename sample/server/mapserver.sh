@@ -1,1 +1,1 @@
-ruby ../../bin/mapserver.rb
+ruby ../../bin/mapserver.rb $*

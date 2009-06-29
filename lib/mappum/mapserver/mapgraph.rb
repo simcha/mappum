@@ -21,7 +21,7 @@ module Mappum
             f = IO.popen( xCmd ,"r+")
             f.print(dot)
             f.close_write
-            return f.readlines.join("\n")
+            return f
           end
           def getPng
             cmd = "dot"
