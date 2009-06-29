@@ -1,0 +1,10 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <env:Fault>
+     <faultcode><%=ERB::Util.html_escape @error.class.to_s%></faultcode>
+     <faultstring><%=ERB::Util.html_escape @error.message%></faultstring>
+     <faultactor>Server</faultactor>
+     <detail><%=ERB::Util.html_escape @error.backtrace.join("\n")%></detail>
+    </env:Fault>
+  </env:Body>
+</env:Envelope>

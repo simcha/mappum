@@ -16,8 +16,8 @@ module Mappum
 
       # FIXME make configurable
       #wl = Mappum::WorkdirLoader.new(options.schema_dir, options.tmp_dir, options.map_dir)
-      wl = Mappum::WorkdirLoader.new('schema', nil, "map")
-      wl.generate_and_require
+      @wl = Mappum::WorkdirLoader.new('schema', nil, "map")
+      @wl.generate_and_require
     end
     helpers do
       def explain_func(element)
@@ -56,7 +56,11 @@ module Mappum
         return @namespaces[namespace]
       end
     end
-    
+    #make get methods for xsd files
+    Dir.glob('schema'+'/**/*.xsd') do |filename|
+      get "/"+filename do
+        [200, {"Content-Type" => "text/xml"}, IO.read(filename)]
+      end    end
     post "/transform" do
           map_name = nil
           map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
@@ -69,27 +73,30 @@ module Mappum
           [200, {"Content-Type" => "text/xml"}, [content]]
     end
     post "/transform-ws" do
-      map_name = nil
-      map_name = params["SOAP_ACTION"] unless params["SOAP_ACTION"].nil? or params["SOAP_ACTION"] == ""
+      map_name = env["HTTP_SOAPACTION"] unless env["HTTP_SOAPACTION"].nil? or env["HTTP_SOAPACTION"] == ""
+      #remove "" if present 
+      map_name = map_name[1..-2] if map_name =~ /^".*"$/
       
       rt = Mappum::XmlTransform.new(options.catalogue)
       
       xml = env["rack.input"].read
-      start_time = Time.now
-
-
-      content = rt.transform(xml,map_name)
-      end_time = Time.now
-      puts end_time - start_time           
-      [200, {"Content-Type" => "text/xml"}, [content]]
+      begin
+        content = rt.transform(xml,map_name)
+      rescue Exception => e
+        @error = e
+        return [200, {"Content-Type" => "text/xml"}, [erb(:'ws-error')]]
+      end          
+      return [200, {"Content-Type" => "text/xml"}, [content]]
     end
     get "/transform-ws.wsdl" do
-      @xml_imports = {
-        "file:///home/jtopinski/mapping/mappum/sample/server/schema/erp/erp_person.xsd" =>
-          "http://mappum.ivmx.pl/person",
-        "file:///home/jtopinski/mapping/mappum/sample/server/schema/crm_client.xsd" =>
-          "http://mappum.ivmx.pl/client",
-      }
+
+      @xml_imports = {}
+      Dir.glob('schema'+'/**/*.xsd') do |xsd_file|
+        namespace = XmlSupport.get_target_ns(xsd_file)
+        @xml_imports[xsd_file] = namespace unless namespace.nil?
+        #FIXME log warning
+      end
+ 
       @xml_maps = []
       @xml_elements = Set.new
       Mappum.catalogue(options.catalogue).list_map_names.each do |mapname|
@@ -115,7 +122,7 @@ module Mappum
       map ||= Mappum.catalogue(options.catalogue)[map_name]
       return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
-      [200, {"Content-Type" => "image/svg+xml"}, [graph.getSvg]]
+      [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
             
     end
     get "/pnggraph" do
