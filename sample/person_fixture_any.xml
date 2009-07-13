@@ -20,4 +20,7 @@
   <phones>
     <number>21311232</number>
   </phones>
+  <spouse>
+  	<name>Mary</name>
+  </spouse>	
 </person>

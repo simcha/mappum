@@ -32,12 +32,17 @@ module Mappum
     def get(object, field)
       if field.nil?
         return object
-      elsif not object.kind_of?(@default_struct_class) or 
-        object.respond_to?(field)
-        return object.send(field)
-      else
-        #for open structures field will be defined later
-        return nil
+      elsif
+        begin
+          return object.send(field)
+        rescue NoMethodError => e
+          #for open structures field will be defined later
+            if object.kind_of?(@default_struct_class)
+              return nil
+            else
+              raise e
+            end
+         end          
       end
     end
     def transform(from, map=nil, to=nil)

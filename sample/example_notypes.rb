@@ -44,6 +44,20 @@ Mappum.catalogue_add "NOTYPE-CRM-ERP" do
     map p.phones[] <=> c.phones[] do |a, b|
       map a.number <=> b.self
     end
+    
+    map p.spouse <=> c.partners do |ps,cp|
+
+      map ps.self <=> cp.partner[1] do |ps1,cp1|
+        map ps1.name <=> cp1.xmlattr_name
+        map "Wife" >> cp1.xmlattr_type
+      end 
+      map ps.self <=> cp.partner[1] do |ps2,cp2|
+        map ps2.name <=> cp2.xmlattr_name
+        map "Friend" >> cp2.xmlattr_type
+      end 
+
+    end
+    
 
     #subobject to fields
     map p.main_phone <=> c.self do |a, b|

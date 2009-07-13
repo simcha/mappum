@@ -21,6 +21,13 @@ end
 
 class OpenXmlObject < SOAP::Mapping::Object
   def method_missing(sym, *args, &block)
+    
+    safename = XSD::CodeGen::GenSupport.safemethodname(sym.to_s).to_sym
+    
+    if safename != sym and self.respond_to?(safename)
+      return self.send(safename, *args, &block)
+    end
+    
     if sym.to_s[-1..-1] == "=" then
       if sym.to_s[0..7] == "xmlattr_"
         #attribute
@@ -45,11 +52,11 @@ class OpenXmlObject < SOAP::Mapping::Object
     @__xmlattr[XSD::QName.new(nil, name)] = value
     self.instance_eval <<-EOS
       def xmlattr_#{name}
-        @__xmlattr[XSD::QName.new(nil, #{name})]
+        @__xmlattr[XSD::QName.new(nil, '#{name}')]
       end
 
       def xmlattr_#{name}=(value)
-        @__xmlattr[XSD::QName.new(nil, #{name})] = value
+        @__xmlattr[XSD::QName.new(nil, '#{name}')] = value
       end
     EOS
   end
