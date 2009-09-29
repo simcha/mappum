@@ -21,7 +21,9 @@ module Mappum
     # Method for transforming from object using map to "to" object.
     #
     def transform(from, map=nil, to=nil)
-
+      
+      raise RuntimeError.new("Map catalogue is empty!") if @map_catalogue.nil?
+      
       map ||= @map_catalogue[from.class]
       
       raise MapMissingException.new(from) if map.nil?

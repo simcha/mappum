@@ -6,6 +6,8 @@ require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'
 require 'mappum/open_xml_object'
 require 'tmpdir'
+require 'fileutils'
+      
 module SOAP::Mapping::RegistrySupport
   def class_schema_definition
     @class_schema_definition
@@ -184,6 +186,8 @@ module Mappum
       end
     end
   end
+  class TreeElement < Struct.new(:name, :elements, :is_array, :clazz)
+  end
   # Class supporting loading working directory of the layout:
   #
   # schema/ - Directory containing xsd files
@@ -191,10 +195,12 @@ module Mappum
   # map/ - directory containing Mappum maps
   #
   class WorkdirLoader
-    def initialize(schema_path = "schema", map_dir="maps", basedir=nil)
+    def initialize(schema_path = "schema", map_dir="map", basedir=nil)
+      schema_path = "schema" if schema_path.nil?
       @schema_path = schema_path
       @basedir = basedir
-      @basedir ||= Dir.mktmpdir
+      @basedir ||= mktmpdir
+      map_dir = "map" if map_dir.nil?
       @map_dir = map_dir
       @mapper_scripts = []
     end
@@ -272,19 +278,26 @@ module Mappum
         end
         return returning
       end
-      name =schema_definition.varname if schema_definition.respond_to?(:varname)
+      name = schema_definition.varname if schema_definition.respond_to?(:varname)
       name ||= schema_definition.class_for
-
+      is_array = false
+      is_array = schema_definition.as_array? if schema_definition.respond_to?(:as_array?)
       if schema_definition.respond_to?(:elements) and not schema_definition.elements.nil?
         subelems = []
         schema_definition.elements.each do |element|
           subelems << defined_element_trees(element)
         end
-        return [name, subelems]
+        return TreeElement.new(name, subelems, is_array, nil)
       end
 
-      return [name, schema_definition.mapped_class]
-    end 
+      return TreeElement.new(name, nil,is_array,schema_definition.mapped_class)
+    end
+    #
+    # Remove tmpdir
+    #
+    def cleanup
+      FileUtils.rm_rf(@basedir) if @cleanup
+    end
     private 
     def run_xsd2ruby(full_name, file_name, module_path, modname)
       worker = WSDL::XMLSchema::XSD2Ruby.new
@@ -298,6 +311,23 @@ module Mappum
       opt["module_path"] = modname unless modname.nil?
       worker.opt.update(opt)
       worker.run
+    end
+    def mktmpdir
+      @cleanup = true
+      prefix = "d"
+      tmpdir ||= Dir.tmpdir
+      t = Time.now.strftime("%Y%m%d")
+      n = nil
+      begin
+        path = "#{tmpdir}/#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}"
+        path << "-#{n}" if n
+        Dir.mkdir(path, 0700)
+      rescue Errno::EEXIST
+        n ||= 0
+        n += 1
+        retry
+      end
+      return path      
     end
   end
   class XmlSupport
