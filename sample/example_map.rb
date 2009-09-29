@@ -8,23 +8,23 @@ Mappum.catalogue_add "CRM-ERP" do
 
   map ERP::Person, CRM::Client do |p, c|
 
-    #simple mapping
+    `simple mapping`
     map p.title <=> c.title
 
-    #map with simple function call
+    `map with simple function call`
     map p.person_id << c.id.downcase
     map p.person_id.upcase >> c.id
     
-    #dictionary use
+    `dictionary use`
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
 
-    #submaps
+    `submaps`
     map p.address(ERP::Address) <=> c.address(CRM::Address) do |a, b|
       map a.street <=> b.street
       #etc.
     end
 
-    #compicated finc call
+    `compicated finc call`
     map p.name >> c.surname do |name|
       name + "ski"
     end
@@ -35,7 +35,7 @@ Mappum.catalogue_add "CRM-ERP" do
         name
       end
     end
-    #field to array and array to field
+    `field to array and array to field`
     map p.email1 <=> c.emails[0]
     map p.email2 <=> c.emails[1]
     map p.email3 <=> c.emails[2]
@@ -52,7 +52,7 @@ Mappum.catalogue_add "CRM-ERP" do
       map a.number <=> b.self
     end
 
-    #subobject to fields
+    `subobject to fields`
     map p.main_phone(ERP::Phone) <=> c.self do |a, b|
       map a.number <=> b.main_phone
       map a.type <=> b.main_phone_type
@@ -72,11 +72,11 @@ Mappum.catalogue_add "CRM-ERP" do
     map p.corporation >> c.company_suffix do |corpo|
       corpo.split(" ")[1]
     end
-    #constants 
+    `constants` 
     map p.type << "NaN"
     map "Last" >> c.order_by
     
-    #func 
+    `func` 
     map p.date_updated << func do
       Date.today
     end
@@ -84,6 +84,7 @@ Mappum.catalogue_add "CRM-ERP" do
       Time.now
     end
   end
+  `Example of submaps autodiscovery`
   map :Group, :ClientList do |g,cl|
     map g.main(ERP::Person) <=> cl.leader(CRM::Client)
     map g.list(ERP::Person)[] <=> cl.clients(CRM::Client)[]
