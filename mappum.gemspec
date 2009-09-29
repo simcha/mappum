@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jan Topi\305\204ski"]
-  s.date = %q{2009-06-29}
+  s.date = %q{2009-07-27}
   s.default_executable = %q{mapserver.rb}
   s.description = %q{}
   s.email = %q{jtopinski@chatka.org}
@@ -74,16 +74,19 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<soap4r>, [">= 1.5.8"])
       s.add_runtime_dependency(%q<sinatra>, [">= 0.9.2"])
       s.add_runtime_dependency(%q<thin>, [">= 1.2.2"])
+      s.add_runtime_dependency(%q<syntax>, [">= 1.0.0"])
     else
       s.add_dependency(%q<facets>, [">= 2.5.2"])
       s.add_dependency(%q<soap4r>, [">= 1.5.8"])
       s.add_dependency(%q<sinatra>, [">= 0.9.2"])
       s.add_dependency(%q<thin>, [">= 1.2.2"])
+      s.add_dependency(%q<syntax>, [">= 1.0.0"])
     end
   else
     s.add_dependency(%q<facets>, [">= 2.5.2"])
     s.add_dependency(%q<soap4r>, [">= 1.5.8"])
     s.add_dependency(%q<sinatra>, [">= 0.9.2"])
     s.add_dependency(%q<thin>, [">= 1.2.2"])
+    s.add_dependency(%q<syntax>, [">= 1.0.0"])
   end
 end

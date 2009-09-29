@@ -2,7 +2,7 @@ module Mappum
 # Base Map class representing mapping betwean two or more types, properties etc.
   class Map
     
-    attr_accessor :maps, :bidi_maps, :strip_empty
+    attr_accessor :maps, :bidi_maps, :strip_empty, :source
     
     def initialize
       @maps = []
@@ -23,11 +23,16 @@ module Mappum
       @name = name
       @strip_empty = false
     end
-    def [](clazz)
+    def [](arg1, to_class=nil)
+      from_class = arg1
       #TODO optimize
-      mpa = @maps.find{|m| m.from.clazz == clazz or m.from.clazz.to_s == clazz.to_s }
+      unless to_class.nil?
+        return @maps.find{|m| (m.from.clazz == from_class or m.from.clazz.to_s == from_class.to_s) and
+                              (m.to.clazz == to_class or m.to.clazz.to_s == to_class.to_s)}
+      end
+      mpa = @maps.find{|m| m.from.clazz == from_class or m.from.clazz.to_s == from_class.to_s }
       return mpa unless mpa.nil?
-      return @maps.find{|m| "#{m.from.clazz}-to-#{m.to.clazz}" == clazz.to_s}
+      return @maps.find{|m| "#{m.from.clazz}-to-#{m.to.clazz}" == arg1.to_s}
     end
     def get_bidi_map(name)
       #TODO optimize
@@ -51,7 +56,7 @@ module Mappum
   end
   
   class FieldMap < Map
-    attr_accessor :dict, :desc, :left, :right, :func, :to, :from, :func_on_nil
+    attr_accessor :dict, :desc, :left, :right, :func, :to, :from, :func_on_nil, :submap_alias
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -100,9 +105,12 @@ module Mappum
       return Field.new(@parent, symbol, args[0])
     end
   end
-  class Field < Struct.new(:name, :clazz, :parent, :func, :is_root, :is_array)
+  class Field < Struct.new(:name, :clazz, :parent, :func, :is_root, :is_array, :is_placeholder)
     def array?
-      @is_array
+      is_array
+    end
+    def placeholder?
+      is_placeholder
     end
   end
   class Constant <  Struct.new(:value) 

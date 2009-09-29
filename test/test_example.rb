@@ -4,6 +4,9 @@ require 'mappum/ruby_transform'
 require 'test/unit'
 require 'sample/example_map'
 
+Group = Struct.new(:main, :list)
+ClientList = Struct.new(:leader, :clients)
+
 class TestExample < Test::Unit::TestCase
   def stest_map
     catalogue = Mappum.catalogue("CRM-ERP")
@@ -133,5 +136,39 @@ class TestExample < Test::Unit::TestCase
 
     per2 = rt.transform(cli)
     assert_equal(per, per2)
+  end
+  def test_submaps
+    catalogue = Mappum.catalogue("CRM-ERP")
+    rt = Mappum::RubyTransform.new(catalogue)
+
+    per = ERP::Person.new
+    per.title = "sir"
+    per.type = "NaN"
+    per.person_id = "asddsa"
+    per.sex = "M"
+    per.name = "Skory"
+    per.address = ERP::Address.new
+    per.address.street = "Victoria"
+    per.date_updated = Date.today
+
+    group = Group.new
+    group.main = per
+    group.list = [per]
+    #clilist =  ClientList.new
+    puts clilist = rt.transform(group,catalogue[:Group])
+    cli = clilist.clients[0]
+    assert_equal("sir", cli.title)
+    assert_equal("ASDDSA", cli.id)
+    assert_equal("2", cli.sex_id)
+    assert_equal("Skoryski", cli.surname)
+    assert_equal(CRM::Address, cli.address.class)
+    assert_equal("Victoria", cli.address.street)
+    assert_nil(cli.phones)
+    assert_nil(cli.main_phone)
+    
+    cli1 = clilist.leader
+    assert_equal("sir", cli1.title)
+    assert_equal("ASDDSA", cli1.id)
+    assert_equal("2", cli1.sex_id)
   end
 end

@@ -22,7 +22,7 @@ Mappum.catalogue_add do
     map e.updated << func do
       Time.now
     end
-    map "oui" >> f.correct
+    map Time.now >> f.correct
   end
 
 end

@@ -13,7 +13,8 @@ module Mappum
       end
       def map(*attr, &block)
         mapa  = FieldMap.new(attr)
-        
+        mapa.def.source = @def.source
+
         mapa.def.desc = @comment
         @comment = nil
         
@@ -44,8 +45,9 @@ module Mappum
       end
     end
     class RootMap < Map
-      def initialize(name)
+      def initialize(name,source=nil)
         @def = Mappum::RootMap.new(name)
+        @def.source = source
       end
       def make_definition &block
         instance_eval(&block)
@@ -61,7 +63,7 @@ module Mappum
       def mpun_right=(right_map_dsl)
         @mpun_right=right_map_dsl
         @def.right=right_map_dsl.mpun_definition
-      end
+        end
       def initialize(*attr)
         @def = Mappum::FieldMap.new
         type_size = 1
@@ -102,7 +104,8 @@ module Mappum
 
         @def.dict = attr[0][1][:dict] if attr[0].size > type_size
         @def.desc = attr[0][1][:desc] if attr[0].size > type_size
-        
+        @def.submap_alias = attr[0][1][:map] if attr[0].size > type_size
+                    
       end   
     end
     #Base class for all mapped elements eg. fields, constants
@@ -138,13 +141,15 @@ module Mappum
     end
     
     class Field < Mappet
-      def initialize(parent, name, clazz)
+      def initialize(parent, name, clazz, placeholder = false)
         @def =  Mappum::Field.new
         @def.parent = parent
         @def.name = name
         @def.clazz = clazz
         @def.is_array = false
         @def.is_root = false
+        @def.is_root = false
+        @def.is_placeholder = placeholder
       end
   
       def type(*attr)
@@ -157,7 +162,7 @@ module Mappum
       def method_missing(symbol, *args)
         if @def.is_root
           if(symbol == :self)
-            return  Field.new(@def, nil, args[0])
+            return Field.new(@def, nil, args[0], true)
           end
           return Field.new(@def, symbol, args[0])
         end

@@ -84,4 +84,8 @@ Mappum.catalogue_add "CRM-ERP" do
       Time.now
     end
   end
+  map :Group, :ClientList do |g,cl|
+    map g.main(ERP::Person) <=> cl.leader(CRM::Client)
+    map g.list(ERP::Person)[] <=> cl.clients(CRM::Client)[]
+  end
 end

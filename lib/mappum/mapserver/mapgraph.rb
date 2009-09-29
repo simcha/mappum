@@ -17,7 +17,7 @@ module Mappum
             cmd = "dot"
             format = "svg"
             xCmd = "#{cmd} -T#{format}"
-            puts dot = getDot
+            dot = getDot
             f = IO.popen( xCmd ,"r+")
             f.print(dot)
             f.close_write
@@ -57,7 +57,6 @@ DOT
           end
           
           private
-          
           def makeStruct(struct_tree)
             str = struct_tree.line || ""
             unless struct_tree.children.nil? or struct_tree.children.empty?

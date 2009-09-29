@@ -3,6 +3,8 @@ gem 'soap4r'
 require 'mappum/xml_transform'
 require 'soap/marshal'
 require 'mappum/mapserver/mapgraph'
+require 'mappum/mapserver/maptable'
+require 'syntax/convertors/html'
 require 'sinatra/base'
 require 'erb'
 
@@ -12,7 +14,7 @@ module Mappum
     configure do
       set :schema_dir => 'schema', :map_dir => 'map', :tmp_dir => nil
       set :catalogue => nil
-      set :port => 9292      
+      set :port => 9292      
 
       # FIXME make configurable
       #wl = Mappum::WorkdirLoader.new(options.schema_dir, options.tmp_dir, options.map_dir)
@@ -57,10 +59,20 @@ module Mappum
       end
     end
     #make get methods for xsd files
-    Dir.glob('schema'+'/**/*.xsd') do |filename|
+    Dir.glob('schema'+'/**/*.xsd') do |filename1|
+      get "/"+filename1 do
+        [200, {"Content-Type" => "text/xml"}, IO.read(filename1)]
+      end
+    #make get methods for map files
+    Dir.glob('map'+'/**/*.rb') do |filename|
       get "/"+filename do
-        [200, {"Content-Type" => "text/xml"}, IO.read(filename)]
-      end    end
+        convertor = Syntax::Convertors::HTML.for_syntax "ruby"
+        @body = convertor.convert( IO.read(filename) ) 
+        
+        [200, {"Content-Type" => "text/html"}, erb(:rubysource)]
+      end
+    end
+   end
     post "/transform" do
           map_name = nil
           map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
@@ -125,6 +137,30 @@ module Mappum
       [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
             
     end
+    get "/maptable" do
+      map_name = params["map"]
+      map = Mappum.catalogue(options.catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
+      table = Mappum::MapServer::MapTable.new(map)
+      text = <<HTML
+      <body>
+        <h1>#{map_name}</h1>
+        <p>
+        #{map.desc}
+        </p>
+        #{table.getHtml}
+        <h2>Dictionaries:</h2>
+        <table border="1" cellspacing="0">
+        <tr><td>Number</td><td>Description</td><td>Technical explanation</td></tr>
+        #{table.edge_maps.keys.sort.collect{|k| "<tr><td>#{k}</td><td>#{table.edge_maps[k].desc}&nbsp;</td><td>#{explain(table.edge_maps[k])}&nbsp;</td></tr>"}}
+        </table>
+      </body>
+HTML
+
+      [200, {"Content-Type" => "text/html"}, text]
+            
+    end
+
     get "/pnggraph" do
           map_name = params["map"]
           map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
@@ -171,11 +207,11 @@ HTML
           </FORM>
           <BR/>
           Bidirectional maps:<p>
-          #{Mappum.catalogue(options.catalogue).list_bidi_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a><br/>"}}
+          #{Mappum.catalogue(options.catalogue).list_bidi_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a> (<a href='#{Mappum.catalogue(options.catalogue).get_bidi_map(mn).source}'>source</a>)<br/>"}}
           </p>
           <BR/>
           Unidirectional maps:<p>
-          #{Mappum.catalogue(options.catalogue).list_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a><br/>"}}
+          #{Mappum.catalogue(options.catalogue).list_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a> (<a href='/maptable?map=#{mn}'>table</a>) (<a href='#{Mappum.catalogue(options.catalogue)[mn].source}'>source</a>)<br/>"}}
           </p>     </body>
 HTML
           [200, {"Content-Type" => "text/html"}, [content404]]

@@ -6,6 +6,14 @@ require 'xsd/mapping'
 require 'wsdl/xmlSchema/xsd2ruby'
 require 'mappum/open_xml_object'
 require 'tmpdir'
+module SOAP::Mapping::RegistrySupport
+  def class_schema_definition
+    @class_schema_definition
+  end
+  def class_elename_schema_definition
+    @class_elename_schema_definition
+  end
+end
 
 class XSD::Mapping::Mapper
   attr_reader :registry
@@ -85,11 +93,18 @@ class XSD::Mapping::Mapper
 end
   
 module Mappum
+  #
+  # SOAP4r based xml to xml transforming class.
+  #
   class XmlTransform
     def initialize(map_catalogue = nil)
       @default_mapper =  XSD::Mapping::Mapper.new(SOAP::Mapping::LiteralRegistry.new)
       @ruby_transform = RubyXmlTransform.new(map_catalogue, OpenXmlObject)
     end
+    #
+    # Transforms given from_xml using map xml transformation from and to Ruby objects can
+    # be controled via from_qname and to_qname. And soap envelope will be striped when handle_soap=true.
+    #
     def transform(from_xml, map=nil, from_qname=nil, to_qname=nil, handle_soap=true)
       soap = false
       
@@ -237,10 +252,39 @@ module Mappum
       $:.unshift @map_dir
       Dir.foreach(@map_dir) do |file_name|
         if /.*.rb/ =~ file_name
+          Mappum.source = File.join(@map_dir, file_name)
           require File.join(@map_dir, file_name)
+          Mappum.source = nil
         end
       end
     end
+    #
+    # Returns simple tree structure representing all elements defined in schemas
+    #
+    #
+    def defined_element_trees(schema_definition = nil)
+      returning = []
+      if schema_definition == nil then
+        XSD::Mapping::Mapper.mappers.each do |mapper|
+           mapper.registry.class_schema_definition.each do |k,v|
+             returning << defined_element_trees(v)
+           end
+        end
+        return returning
+      end
+      name =schema_definition.varname if schema_definition.respond_to?(:varname)
+      name ||= schema_definition.class_for
+
+      if schema_definition.respond_to?(:elements) and not schema_definition.elements.nil?
+        subelems = []
+        schema_definition.elements.each do |element|
+          subelems << defined_element_trees(element)
+        end
+        return [name, subelems]
+      end
+
+      return [name, schema_definition.mapped_class]
+    end 
     private 
     def run_xsd2ruby(full_name, file_name, module_path, modname)
       worker = WSDL::XMLSchema::XSD2Ruby.new

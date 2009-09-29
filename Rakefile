@@ -39,6 +39,7 @@ begin
     gemspec.add_dependency('soap4r', '>= 1.5.8')
     gemspec.add_dependency('sinatra', '>= 0.9.2')
     gemspec.add_dependency('thin', '>= 1.2.2')
+    gemspec.add_dependency('syntax', '>= 1.0.0')
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
