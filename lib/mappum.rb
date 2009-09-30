@@ -20,6 +20,11 @@ module Mappum
   #
   def self.catalogue(name = "ROOT")
     name = "ROOT" if name.nil?
+    if @catalogue.nil?
+      throw RuntimeError.new("No maps where loaded remember to put some moaps in 'map' folder and load them.\n"+
+        "To load in ruby just require files or use WorkdirLoader.generate_and_require.\n"+
+        "To load in java run:\nMappumApi mp = new MappumApi();\nmp.loadMaps();") 
+    end
     @catalogue[name]
   end
   #
