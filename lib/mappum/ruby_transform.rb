@@ -112,12 +112,12 @@ module Mappum
           end
           
           all_nils = false unless to_value.nil?
-                    
+
           if sm.to.name.nil?
+            to = nil if to.respond_to?(:empty?) and to.empty?
             to ||= to_value
           elsif
             to ||= @default_struct_class.new 
-            
             to.send("#{sm.to.name}=", convert_to(to_value, sm.to)) unless to_value.nil?
           end
         end
