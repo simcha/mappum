@@ -2,6 +2,7 @@
 require 'set'
 require 'mappum'
 require 'ostruct'
+require 'mappum/autoconv_catalogue'
 
 module Mappum
   #
@@ -14,6 +15,7 @@ module Mappum
     def initialize(map_catalogue = nil, default_struct_class=nil)
       @map_catalogue = map_catalogue if map_catalogue.kind_of?(Mappum::Map)
       @map_catalogue ||= Mappum.catalogue(map_catalogue)
+      @autoconv_map_catalogue = Mappum.catalogue("MAPPUM_AUTOCONV")
       @default_struct_class = default_struct_class
       @default_struct_class ||= Mappum::OpenStruct;
     end
@@ -28,7 +30,7 @@ module Mappum
       
       raise MapMissingException.new(from) if map.nil?
       
-      to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+      #to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
       
       all_nils = true
       map.maps.each do |sm|
@@ -45,7 +47,13 @@ module Mappum
             submaps = @map_catalogue[sm.submap_alias].maps
           end
           if sm.to.respond_to?(:clazz) and sm.from.respond_to?(:clazz) and sm.from.clazz != sm.to.clazz
-            submaps = @map_catalogue[sm.from.clazz,sm.to.clazz].maps
+            sub = @map_catalogue[sm.from.clazz,sm.to.clazz]
+            sub ||= @autoconv_map_catalogue[sm.from.clazz,sm.to.clazz]
+            unless  sub.nil? 
+             submaps = sub.maps
+            else
+             to_value = from_value
+            end
           else
             to_value = from_value
           end
@@ -66,6 +74,7 @@ module Mappum
             
             to_value = from_value.collect{|v| transform(v, sm_v)}
           else
+            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             v_to = nil
             #array values are assigned after return
@@ -102,6 +111,7 @@ module Mappum
           if sm.to.name.nil?
             to = convert_to(to_array, sm.to)
           else
+            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             to.send("#{sm.to.name}=", convert_to(to_array, sm.to)) unless to_array.nil?
           end
@@ -114,9 +124,9 @@ module Mappum
           all_nils = false unless to_value.nil?
 
           if sm.to.name.nil?
-            to = nil if to.respond_to?(:empty?) and to.empty?
             to ||= to_value
-          elsif
+          else
+            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new 
             to.send("#{sm.to.name}=", convert_to(to_value, sm.to)) unless to_value.nil?
           end
