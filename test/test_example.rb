@@ -87,7 +87,6 @@ class TestExample < Test::Unit::TestCase
     assert_equal("Linda", cli.partners[1].name)
     assert(cli.updated.kind_of?(Time))
     
-    
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
@@ -155,7 +154,7 @@ class TestExample < Test::Unit::TestCase
     group.main = per
     group.list = [per]
     #clilist =  ClientList.new
-    puts clilist = rt.transform(group,catalogue[:Group])
+    clilist = rt.transform(group,catalogue[:Group])
     cli = clilist.clients[0]
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)

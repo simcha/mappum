@@ -92,6 +92,7 @@ module Mappum
           to_value = sm.func.call(to_value)
         end
         unless sm.from.func.nil? or to_value.nil?
+          mappum_block = sm.from.block
           to_value = to_value.instance_eval(sm.from.func)
         end
         unless sm.dict.nil?

@@ -56,7 +56,7 @@ module Mappum
   end
   
   class FieldMap < Map
-    attr_accessor :dict, :desc, :left, :right, :func, :to, :from, :func_on_nil, :submap_alias
+    attr_accessor :dict, :desc, :left, :right, :func, :block, :to, :from, :func_on_nil, :submap_alias
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -105,7 +105,7 @@ module Mappum
       return Field.new(@parent, symbol, args[0])
     end
   end
-  class Field < Struct.new(:name, :clazz, :parent, :func, :is_root, :is_array, :is_placeholder)
+  class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_array, :is_placeholder)
     def array?
       is_array
     end

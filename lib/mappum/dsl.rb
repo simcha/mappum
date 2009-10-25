@@ -1,3 +1,4 @@
+#require 'facets/kernel/instance_exec'
 class Object 
   def >> field
   return {Mappum::DSL::Constant.new(self) => field} if field.kind_of?(Mappum::DSL::Field)
@@ -159,7 +160,7 @@ module Mappum
         method_missing(:id, *attr)
       end
   
-      def method_missing(symbol, *args)
+      def method_missing(symbol, *args, &block)
         if @def.is_root
           if(symbol == :self)
             return Field.new(@def, nil, args[0], true)
@@ -178,12 +179,20 @@ module Mappum
             @def.is_array = true
           end
         end
-        if @def.func.nil?
-          @def.func =  "self.#{symbol}(#{args.join(", ")})"
-        else
-          @def.func += ".#{symbol}(#{args.join(", ")})"
+        #this functions also indicate Array -> element
+        if symbol == :find or symbol == :detect
+          @def.is_array = true
         end
-  
+        arguments = args.clone
+        unless block.nil?
+          arguments << "&mappum_block"
+          @def.block = block
+        end
+        if @def.func.nil?
+          @def.func =  "self.#{symbol}(#{arguments.join(", ")})"
+        else
+          @def.func += ".#{symbol}(#{arguments.join(", ")})"
+        end
         return self
       end
     end

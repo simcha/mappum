@@ -22,6 +22,14 @@
         </xsd:complexType>
         </xsd:element> 
         <xsd:element name="phones" type="phone" minOccurs="0" maxOccurs="5"/>
+        <xsd:element name="spouse" minOccurs="0" maxOccurs="5">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+          </xsd:sequence>
+        </xsd:complexType>
+        <xsd:element>
       </xsd:sequence> 
     </xsd:complexType>
   </xsd:element>

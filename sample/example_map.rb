@@ -44,7 +44,8 @@ Mappum.catalogue_add "CRM-ERP" do
       map ps.name <=> cp.name
       "Wife" >> cp.type
     end
-    map p.spouse(ERP::Person) <=> c.partners[1] do |ps,cp|
+    map p.spouse(ERP::Person) <=> c.partners.find{|cp|cp.name == "Linda"} do |ps,cp|
+    #map p.spouse(ERP::Person) <=> c.partners[1] do |ps,cp|
       map ps.name <=> cp.name
       "Friend" >> cp.type
     end   
