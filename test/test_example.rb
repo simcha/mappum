@@ -84,13 +84,15 @@ class TestExample < Test::Unit::TestCase
     assert_equal("09876567", cli.main_phone)
     assert_equal("Last", cli.order_by)
     assert_equal("Linda", cli.partners[0].name)
+    assert_equal("Wife", cli.partners[0].type)
     assert_equal("Linda", cli.partners[1].name)
+    assert_equal("Friend", cli.partners[1].type)
     assert(cli.updated.kind_of?(Time))
     
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
-  def stest_transform_nil_array
+  def test_transform_nil_array
     catalogue = Mappum.catalogue("CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 
@@ -118,20 +120,20 @@ class TestExample < Test::Unit::TestCase
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
-  def stest_transform_funny_array
+  def test_transform_funny_array
     catalogue = Mappum.catalogue("CRM-ERP")
     rt = Mappum::RubyTransform.new(catalogue)
 
     per = ERP::Person.new
     per.type = "NaN"
     per.email1 = "j@j.com"
-    per.email3 = "l@l.com"
+    per.email2 = "l@l.com"
     per.main_phone = ERP::Phone.new("7869876")
     per.date_updated = Date.today
     
     cli = rt.transform(per)
     
-    assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
+    assert_equal(["j@j.com", "l@l.com", nil], cli.emails)
 
     per2 = rt.transform(cli)
     assert_equal(per, per2)

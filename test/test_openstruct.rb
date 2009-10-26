@@ -116,12 +116,12 @@ class TestOpenStruct < Test::Unit::TestCase
 
     per = Mappum::OpenStruct.new
     per.email1 = "j@j.com"
-    per.email3 = "l@l.com"
+    per.email2 = "l@l.com"
     per.main_phone = Mappum::OpenStruct.new
     per.main_phone.number ="09876567"
 
     cli = rt.transform(per,catalogue[:person])
-    assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
+    assert_equal(["j@j.com", "l@l.com", nil], cli.emails)
 
     per2 = rt.transform(cli,catalogue[:client])
     assert_equal(per, per2)

@@ -97,10 +97,10 @@ class TestExample < Test::Unit::TestCase
 
     per = Erp::Person.new
     per.email1 = "j@j.com"
-    per.email3 = "l@l.com"
+    per.email2 = "l@l.com"
     per.main_phone = Erp::Phone.new("7869876")
     cli = rt.transform(per)
-    assert_equal(["j@j.com", nil, "l@l.com"], cli.emails)
+    assert_equal(["j@j.com", "l@l.com", nil], cli.emails)
 
     per2 = rt.transform(cli)
     assert_equal(per, per2)

@@ -31,7 +31,7 @@ module Mappum
       raise MapMissingException.new(from) if map.nil?
       
       #to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
-      
+
       all_nils = true
       map.maps.each do |sm|
         from_value, to_value = nil, nil
@@ -41,7 +41,20 @@ module Mappum
         else
            from_value = sm.from.value
         end
-        submaps = sm.maps
+        unless sm.func.nil? or (not sm.func_on_nil? and from_value.nil?)
+          from_value = sm.func.call(from_value)
+        end
+        unless sm.from.func.nil? or from_value.nil?
+          mappum_block = sm.from.block
+            if from_value.kind_of?(Array) or
+              (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
+               from_value = from_value.compact.instance_eval(sm.from.func)
+            else
+              from_value = from_value.instance_eval(sm.from.func)
+            end
+        end
+
+       submaps = sm.maps
         if sm.maps.empty?
           unless sm.submap_alias.nil? or sm.submap_alias.empty?
             submaps = @map_catalogue[sm.submap_alias].maps
@@ -71,7 +84,7 @@ module Mappum
               sm_v.to.is_array = false
             end
             sm_v.maps = submaps if sm_v.maps.empty?
-            
+
             to_value = from_value.collect{|v| transform(v, sm_v)}
           else
             to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
@@ -87,13 +100,6 @@ module Mappum
             to_value = transform(from_value, sm_v, v_to)
           end
 
-        end
-        unless sm.func.nil? or (not sm.func_on_nil? and to_value.nil?)
-          to_value = sm.func.call(to_value)
-        end
-        unless sm.from.func.nil? or to_value.nil?
-          mappum_block = sm.from.block
-          to_value = to_value.instance_eval(sm.from.func)
         end
         unless sm.dict.nil?
           to_value = sm.dict[to_value]
@@ -143,7 +149,7 @@ module Mappum
     protected
     
     def get(object, field)
-      if field.nil?
+      if field.nil? or object.nil?
         return object
       elsif
         begin
