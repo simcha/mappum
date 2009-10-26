@@ -69,6 +69,10 @@ module Mappum
           filelist = Dir.glob(File.join(url.path,"*.rb"))
           #make paths relative again
           maplist += filelist.collect{|f| f[(url.path.size-dir.size)..-1]}
+        elsif url.protocol ==  "vfsfile"
+          filelist = Dir.glob(File.join(url.path,"*.rb"))
+          #make paths relative again
+          maplist += filelist.collect{|f| f[(url.path.size-dir.size-1)..-1]}
         elsif url.protocol == "jar"
           #beware nestet url
           path = URI.new(url.path).path
