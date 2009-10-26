@@ -15,6 +15,9 @@ public class MappumApi {
     if(initialize){
       ScriptEngineManager m = new ScriptEngineManager();
       ScriptEngine rubyEngine = m.getEngineByName("jruby");
+      if(rubyEngine == null){
+        throw new RuntimeException("No jruby jsr-223 engine found download jruby an jruby-engine jars.");
+      }
       ScriptContext context = rubyEngine.getContext();
       //context.setAttribute("this_mappum",this, ScriptContext.ENGINE_SCOPE);
       try {

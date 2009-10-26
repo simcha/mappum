@@ -6,11 +6,6 @@ package pl.ivmx.mappum;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import iv.Client;
 import iv.Person;
@@ -29,6 +24,7 @@ public class MappumTest extends TestCase {
     super.setUp();
   }
   public void testGetDefinedElementTrees(){
+
     MappumApi mp = new MappumApi();
     WorkdirLoader wl = mp.getWorkdirLoader("../sample/server/schema","../sample/server/map",null);
     wl.generateAndRequire();
@@ -44,11 +40,12 @@ public class MappumTest extends TestCase {
   public void testTransform(){
     MappumApi mp = new MappumApi();
     mp.loadMaps();
-    Person per = newPerson();
+    JavaTransform jt = mp.getJavaTransform();
 
+    Person per = newPerson();
     Client cli = null;
     Person person = null;
-    JavaTransform jt = mp.getJavaTransform();
+    
     long time = System.currentTimeMillis();
     for (int i = 0; i < 200; i++) {
       cli = (Client) jt.transform(per);     
