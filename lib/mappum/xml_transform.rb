@@ -235,7 +235,7 @@ module Mappum
         full_name = File.join(schema_path,file_name)
         #when file is a directory
         #generate classes in module (recursive)
-        if File.directory?(full_name) and not file_name == "." and not file_name == ".."
+        if File.directory?(full_name) and not file_name[0..0] == "." 
           #make directory for future class files
           module_pth = file_name
           module_pth = File.join(module_path, module_pth) unless module_path.nil?
