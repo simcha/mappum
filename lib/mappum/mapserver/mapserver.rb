@@ -76,8 +76,10 @@ module Mappum
     post "/transform" do
           map_name = nil
           map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
-          
-          rt = Mappum::XmlTransform.new(options.catalogue)
+          force_openstruct = false
+          force_openstruct = params["ignore"] unless params["map"].nil?
+
+          rt = Mappum::XmlTransform.new(options.catalogue, force_openstruct)
           
           xml = params["doc"]
           content = rt.transform(xml,map_name)
@@ -200,6 +202,7 @@ HTML
               <option value="auto_select" selected="true">auto select</option>
               #{Mappum.catalogue(options.catalogue).list_map_names.collect{|mn| "<option value='#{mn}'>#{mn}</option>"}}
             </select>
+            <input type="checkbox" name="ignore" value="false">Ignore types</input>
             <br/>
              <TEXTAREA name="doc" rows="20" cols="80"></TEXTAREA><br/>
              <INPUT type="submit" value="Send"/><INPUT type="reset"/>

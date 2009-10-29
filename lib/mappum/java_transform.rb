@@ -49,6 +49,13 @@ module Mappum
         Mappum.source = nil
       end
     end
+    def startServer
+      require 'webrick'
+      load 'mappum/mapserver/mapserver.rb'
+      Mappum::Mapserver.parseopt
+      Mappum::Mapserver.run!
+
+    end
   end
 
   #

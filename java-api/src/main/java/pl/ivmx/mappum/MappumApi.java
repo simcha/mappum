@@ -73,4 +73,11 @@ public class MappumApi {
   public JavaTransform getJavaTransform(String catalogue){
     return rubyMappum.getJavaTransform(catalogue);    
   }
+  public void startServer(){
+    rubyMappum.startServer(); 
+  }
+  public static void main(String[] args){
+    MappumApi mappumApi = new MappumApi();
+    mappumApi.startServer();
+  }
 }

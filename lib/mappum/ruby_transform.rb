@@ -12,11 +12,12 @@ module Mappum
   class RubyTransform
     attr_accessor :map_catalogue
     
-    def initialize(map_catalogue = nil, default_struct_class=nil)
+    def initialize(map_catalogue=nil, default_struct_class=nil, force_open_struct=false)
       @map_catalogue = map_catalogue if map_catalogue.kind_of?(Mappum::Map)
       @map_catalogue ||= Mappum.catalogue(map_catalogue)
       @autoconv_map_catalogue = Mappum.catalogue("MAPPUM_AUTOCONV")
       @default_struct_class = default_struct_class
+      @force_open_struct = force_open_struct
       @default_struct_class ||= Mappum::OpenStruct;
     end
     #
@@ -87,7 +88,7 @@ module Mappum
 
             to_value = from_value.collect{|v| transform(v, sm_v)}
           else
-            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+            to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             v_to = nil
             #array values are assigned after return
@@ -118,7 +119,7 @@ module Mappum
           if sm.to.name.nil?
             to = convert_to(to_array, sm.to)
           else
-            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+            to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             to.send("#{sm.to.name}=", convert_to(to_array, sm.to)) unless to_array.nil?
           end
@@ -133,7 +134,7 @@ module Mappum
           if sm.to.name.nil?
             to ||= to_value
           else
-            to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+            to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new 
             to.send("#{sm.to.name}=", convert_to(to_value, sm.to)) unless to_value.nil?
           end

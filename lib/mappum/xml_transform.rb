@@ -99,9 +99,9 @@ module Mappum
   # SOAP4r based xml to xml transforming class.
   #
   class XmlTransform
-    def initialize(map_catalogue = nil)
+    def initialize(map_catalogue = nil, force_open_struct=false)
       @default_mapper =  XSD::Mapping::Mapper.new(SOAP::Mapping::LiteralRegistry.new)
-      @ruby_transform = RubyXmlTransform.new(map_catalogue, OpenXmlObject)
+      @ruby_transform = RubyXmlTransform.new(map_catalogue, OpenXmlObject, force_open_struct)
     end
     #
     # Transforms given from_xml using map xml transformation from and to Ruby objects can
@@ -162,7 +162,7 @@ module Mappum
         if to.clazz.kind_of?(XSD::QName)
           to_qname = to.clazz
         else
-          to_qname = XSD::QName.new(nil, to.clazz.to_s)
+          to_qname = XSD::QName.new(nil, XSD::CodeGen::GenSupport.safeconstname(to.clazz.to_s))
         end
       end
       to_preparsed = to_mapper.obj2soap(transformed,to_qname)
@@ -182,7 +182,16 @@ module Mappum
       begin
         super(object, field)
       rescue NoMethodError
-        super(object, XSD::CodeGen::GenSupport.safemethodname(field.to_s).to_sym)
+        begin
+          super(object, XSD::CodeGen::GenSupport.safemethodname(field.to_s).to_sym)
+        rescue NoMethodError
+          #for dynamic xml nil value == no methond
+          if object.kind_of?(SOAP::Mapping::Object)
+            return nil
+          else
+            raise
+          end
+        end
       end
     end
   end
