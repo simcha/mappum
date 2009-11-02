@@ -37,11 +37,16 @@ module Mappum
         @comment ||= ""
         @comment += str
       end
+      # Add prefix to auto map names
+      def name_map_prefix(name)
+        name_map(:prefix, name)
+      end
       #
       # Give name to a map where map is:
       # :<=> - bidirectional map name
       # :> - left to right map name
       # :< - right to left map name
+      # :prefix - add prefix to auto generated names
       #
       def name_map(map, name)
           case map
@@ -51,6 +56,12 @@ module Mappum
              @def.l2r_name = name.to_s
           when :<, '<'
              @def.r2l_name = name.to_s
+          when :prefix, 'prefix'
+             if name.to_s[-1..-1]=='_'
+               @def.name_prefix = name.to_s 
+             else
+               @def.name_prefix = "#{name.to_s}_" 
+             end
           end 
       end
       def func

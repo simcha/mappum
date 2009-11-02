@@ -57,7 +57,7 @@ module Mappum
   
   class FieldMap < Map
     attr_accessor :dict, :desc, :left, :right, :func, :block, :to, :from, :func_on_nil, :submap_alias
-    attr_accessor :name, :l2r_name, :r2l_name
+    attr_accessor :name, :l2r_name, :r2l_name, :name_prefix
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -66,9 +66,9 @@ module Mappum
     def name
       return @name unless @name.nil?
       if normalized?
-        @name = "#{@from.clazz}_to_#{@to.clazz}"
+        @name = "#{@name_prefix}#{@from.clazz}_to_#{@to.clazz}"
       else
-        @name =  "#{@left.clazz}_to_from-#{@right.clazz}"
+        @name =  "#{@name_prefix}#{@left.clazz}_to_from-#{@right.clazz}"
       end
       return @name
     end
