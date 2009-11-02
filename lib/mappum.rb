@@ -12,8 +12,8 @@ module Mappum
     @catalogue_src ||= {}
     @catalogue[name] ||= RootMap.new(name)
     definition = DSL::RootMap.new(name, @source).make_definition(&block)
-    @catalogue[name].maps += definition.maps
-    @catalogue[name].bidi_maps += definition.bidi_maps
+    definition.maps.each{|m| @catalogue[name].add(m)}
+    definition.bidi_maps.each{|m| @catalogue[name].add(m)}
   end
   #
   # Get root map.

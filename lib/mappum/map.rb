@@ -22,36 +22,72 @@ module Mappum
       super()
       @name = name
       @strip_empty = false
+      @maps_by_name, @maps_by_from = {},{}
+      @maps_by_from_to = {}
+      @bidi_maps_by_name, @bidi_maps_by_class = {},{}
     end
     def [](arg1, to_class=nil)
       from_class = arg1
-      #TODO optimize
       unless to_class.nil?
-        return @maps.find{|m| (m.from.clazz == from_class or m.from.clazz.to_s == from_class.to_s) and
-                              (m.to.clazz == to_class or m.to.clazz.to_s == to_class.to_s)}
+        key = [from_class.to_s, to_class.to_s]
+        return @maps_by_from_to[key]
       end
-      mpa = @maps.find{|m| m.from.clazz == from_class or m.from.clazz.to_s == from_class.to_s }
+      mpa = @maps_by_from[from_class.to_s]
       return mpa unless mpa.nil?
-      return @maps.find{|m| m.name == arg1.to_s}
+      return @maps_by_name[arg1.to_s]
     end
     def get_bidi_map(name)
-      #TODO optimize
-      mpa = @bidi_maps.find{|m| m.right.clazz == name or m.right.clazz.to_s == name.to_s }
-      mpa ||= @bidi_maps.find{|m| m.left.clazz == name or m.left.clazz.to_s == name.to_s }
+      mpa = @bidi_maps_by_class[name.to_s]
       return mpa unless mpa.nil?
       
-      return @bidi_maps.find{|m| m.name == name.to_s}
+      return @bidi_maps[name.to_s]
     end
     def list_map_names(full_list = false)
       list = []
-      list += @maps.collect{|m| m.name}
-      list += @maps.collect{|m|m.from.clazz} if full_list
+      list += @maps_by_name.collect{|k,v| k}
+      list += @maps_by_from.collect{|k,v| k} if full_list
       return list
     end
     def list_bidi_map_names
       list = []
-      list += @bidi_maps.collect{|m| m.name}
+      list += @bidi_maps_by_name.collect{|k, v| k}
       return list
+    end
+    #
+    # Add array of maps to catalogue.
+    # Makes name index for map search.
+    # Map names will be used and no 2 names can be the same in the catalogue/
+    # Class names will be used for maps that are unique in regard to mapping from and to classes.
+    #
+    def add(map)
+      if map.normalized?
+        raise "Duplicate map name #{map.name}" if @maps_by_name.include?(map.name)
+        @maps_by_name[map.name] = map
+        #When there are 2 maps from same class to other classes non will be found by default
+        add_to_index(@maps_by_from, map.from.clazz.to_s, map)
+
+        #When there are 2 maps from same class to same class non will be found by default
+        from_to_key = [map.from.clazz.to_s, map.to.clazz.to_s]
+        add_to_index(@maps_by_from_to, from_to_key, map)
+      else
+        raise "Duplicate map name #{map.name}" if @bidi_maps_by_name.include?(map.name)
+        @bidi_maps_by_name[map.name] = map
+
+        add_to_index(@bidi_maps_by_class, map.left.clazz.to_s, map)
+        add_to_index(@bidi_maps_by_class, map.right.clazz.to_s, map)
+      end
+    end
+    #
+    # Add value to index in key position unless there is a value for such a key
+    # in such a case put nil in the index to mark position invalid
+    #
+    private 
+    def add_to_index(index, key, map)
+      if index.include?(key)
+        index[key] = nil
+      else
+        index[key] = map
+      end
     end
   end
   
