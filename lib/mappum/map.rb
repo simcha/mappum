@@ -32,7 +32,7 @@ module Mappum
       end
       mpa = @maps.find{|m| m.from.clazz == from_class or m.from.clazz.to_s == from_class.to_s }
       return mpa unless mpa.nil?
-      return @maps.find{|m| "#{m.from.clazz}-to-#{m.to.clazz}" == arg1.to_s}
+      return @maps.find{|m| m.name == arg1.to_s}
     end
     def get_bidi_map(name)
       #TODO optimize
@@ -40,49 +40,62 @@ module Mappum
       mpa ||= @bidi_maps.find{|m| m.left.clazz == name or m.left.clazz.to_s == name.to_s }
       return mpa unless mpa.nil?
       
-      return @bidi_maps.find{|m| "#{m.left.clazz}-to-from-#{m.right.clazz}" == name.to_s}
+      return @bidi_maps.find{|m| m.name == name.to_s}
     end
     def list_map_names(full_list = false)
       list = []
-      list += @maps.collect{|m| "#{m.from.clazz}-to-#{m.to.clazz}"}
+      list += @maps.collect{|m| m.name}
       list += @maps.collect{|m|m.from.clazz} if full_list
       return list
     end
     def list_bidi_map_names
       list = []
-      list += @bidi_maps.collect{|m| "#{m.left.clazz}-to-from-#{m.right.clazz}"}
+      list += @bidi_maps.collect{|m| m.name}
       return list
     end
   end
   
   class FieldMap < Map
     attr_accessor :dict, :desc, :left, :right, :func, :block, :to, :from, :func_on_nil, :submap_alias
+    attr_accessor :name, :l2r_name, :r2l_name
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
       not @from.nil?
     end
-    
+    def name
+      return @name unless @name.nil?
+      if normalized?
+        @name = "#{@from.clazz}_to_#{@to.clazz}"
+      else
+        @name =  "#{@left.clazz}_to_from-#{@right.clazz}"
+      end
+      return @name
+    end
     def normalize
       #if bidirectional
       if not normalized?
-        map_l = self.clone
-        map_l.to = self.left
-        map_l.from = self.right
-        map_l.maps = self.maps.select do |m|
-          m.to.parent == map_l.to
+        map_r2l = self.clone
+        map_r2l.to = self.left
+        map_r2l.from = self.right
+        map_r2l.name = self.r2l_name
+        map_r2l.r2l_name, map_r2l.l2r_name = nil, nil
+        map_r2l.maps = self.maps.select do |m|
+          m.to.parent == map_r2l.to
         end
         
-        map_l.dict = self.dict.invert unless self.dict.nil?
+        map_r2l.dict = self.dict.invert unless self.dict.nil?
   
-        map_r = self.clone
-        map_r.to = self.right
-        map_r.from = self.left
-        map_r.maps = self.maps.select do |m|
-          m.to.parent == map_r.to
+        map_l2r = self.clone
+        map_l2r.to = self.right
+        map_l2r.from = self.left
+        map_l2r.name = self.l2r_name
+        map_l2r.r2l_name, map_l2r.l2r_name = nil, nil
+        map_l2r.maps = self.maps.select do |m|
+          m.to.parent == map_l2r.to
         end
   
-        [map_l, map_r]
+        [map_r2l, map_l2r]
       else
         [self]
       end

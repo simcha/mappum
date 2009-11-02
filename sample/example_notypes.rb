@@ -5,7 +5,9 @@ require 'mappum'
 Mappum.catalogue_add "NOTYPE-CRM-ERP" do
 
   map :person, :client do |p, c|
-
+    name_map :<=>, :notype_person_client
+    name_map :<, :notype_client_to_person
+    name_map :>, :notype_person_to_client
     #simple mapping
     map p.title <=> c.title
     

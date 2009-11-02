@@ -29,6 +29,8 @@ module Mappum
       
       map ||= @map_catalogue[from.class]
       
+      map = @map_catalogue[map] if map.kind_of?(Symbol) or map.kind_of?(String)
+      
       raise MapMissingException.new(from) if map.nil?
       
       #to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)

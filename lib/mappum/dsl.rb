@@ -37,7 +37,22 @@ module Mappum
         @comment ||= ""
         @comment += str
       end
-      
+      #
+      # Give name to a map where map is:
+      # :<=> - bidirectional map name
+      # :> - left to right map name
+      # :< - right to left map name
+      #
+      def name_map(map, name)
+          case map
+          when :<=>, '<=>'
+            @def.name = name.to_s
+          when :>, '>'
+             @def.l2r_name = name.to_s
+          when :<, '<'
+             @def.r2l_name = name.to_s
+          end 
+      end
       def func
         Mappum::DSL::Function.new        
       end
