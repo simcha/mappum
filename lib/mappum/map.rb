@@ -6,7 +6,7 @@ module Mappum
     
     def initialize
       @maps = []
-      @bidi_maps = []
+      @bidi_maps =[]
       @strip_empty = true
     end
     # When value of mapped property is null remove property.
@@ -40,7 +40,7 @@ module Mappum
       mpa = @bidi_maps_by_class[name.to_s]
       return mpa unless mpa.nil?
       
-      return @bidi_maps[name.to_s]
+      return @bidi_maps_by_name[name.to_s]
     end
     def list_map_names(full_list = false)
       list = []
