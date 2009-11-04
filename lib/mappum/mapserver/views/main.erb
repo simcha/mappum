@@ -1,0 +1,39 @@
+<html>
+	<body>
+      <form action="/" method="get">
+	    Catalogue: 
+	    <select name="catalogue">
+		  <%@catalogues.each do |cat|%>
+			  <option value="<%=cat%>" <%="selected='true'" if cat == @catalogue%>><%=cat%></option>
+		  <%end%>	
+		</select>
+	    <input type="submit" value="Change"/> (<a href="/<%=@catalogue%>/transform-ws.wsdl">wsdl</a>)
+	  </form> 
+	  <form action="/<%=@catalogue%>/transform" method="post">
+		 <p>
+		<select name="map">
+		  <option value="auto_select" selected="true">auto select</option>
+		  <%@maps_name_source.collect do |mn, source|%>
+	        <option value='<%=mn%>'><%=mn%></option>
+	      <%end%>
+		</select>
+		<input type="checkbox" name="ignore" value="false">Ignore types</input>
+		<br/>
+		 <TEXTAREA name="doc" rows="20" cols="80"></TEXTAREA><br/>
+		 <INPUT type="submit" value="Send"/><INPUT type="reset"/>
+		 </p>
+	  </form>
+	  <BR/>
+	  Bidirectional maps:<p>
+	  <%@bidi_maps_name_source.each do |mn, source|%>
+	    <a href='/<%=@catalogue%>/doc?map=<%=mn%>'><%=mn%></a> (<a href='<%=source%>'>source</a>)<br/>
+	  <%end%>
+	  </p>
+	  <BR/>
+	  Unidirectional maps:<p>
+	  <%@maps_name_source.collect do |mn, source|%>
+	    <a href='/<%=@catalogue%>/doc?map=<%=mn%>'><%=mn%></a> (<a href='/<%=@catalogue%>/maptable?map=<%=mn%>'>table</a>) (<a href='<%=source%>'>source</a>)<br/>
+	  <%end%>
+	  </p>     
+	</body>
+<html>

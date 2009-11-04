@@ -73,25 +73,31 @@ module Mappum
       end
     end
    end
-    post "/transform" do
-          map_name = nil
-          map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
-          force_openstruct = false
-          force_openstruct = params["ignore"] unless params["map"].nil?
+    post "*/transform" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
-          rt = Mappum::XmlTransform.new(options.catalogue, force_openstruct)
-          
-          xml = params["doc"]
-          content = rt.transform(xml,map_name)
-          
-          [200, {"Content-Type" => "text/xml"}, [content]]
+	  map_name = nil
+	  map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
+	  force_openstruct = false
+	  force_openstruct = params["ignore"] unless params["map"].nil?
+
+	  rt = Mappum::XmlTransform.new(@catalogue, force_openstruct)
+	  
+	  xml = params["doc"]
+	  content = rt.transform(xml,map_name)
+	  
+	  [200, {"Content-Type" => "text/xml"}, [content]]
     end
-    post "/transform-ws" do
+    post "*/transform-ws" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
+   
       map_name = env["HTTP_SOAPACTION"] unless env["HTTP_SOAPACTION"].nil? or env["HTTP_SOAPACTION"] == ""
       #remove "" if present 
       map_name = map_name[1..-2] if map_name =~ /^".*"$/
       
-      rt = Mappum::XmlTransform.new(options.catalogue)
+      rt = Mappum::XmlTransform.new(@catalogue)
       
       xml = env["rack.input"].read
       begin
@@ -102,7 +108,9 @@ module Mappum
       end          
       return [200, {"Content-Type" => "text/xml"}, [content]]
     end
-    get "/transform-ws.wsdl" do
+    get "*/transform-ws.wsdl" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
       @xml_imports = {}
       Dir.glob('schema'+'/**/*.xsd') do |xsd_file|
@@ -113,8 +121,8 @@ module Mappum
  
       @xml_maps = []
       @xml_elements = Set.new
-      Mappum.catalogue(options.catalogue).list_map_names.each do |mapname|
-        map = Mappum.catalogue(options.catalogue)[mapname]
+      Mappum.catalogue(@catalogue).list_map_names.each do |mapname|
+        map = Mappum.catalogue(@catalogue)[mapname]
         
         from_qname = XSD::Mapping::Mapper.get_qname_from_class(map.from.clazz)
         @xml_elements << from_qname unless from_qname.nil?
@@ -130,94 +138,62 @@ module Mappum
       
       [200, {"Content-Type" => "text/xml"}, [erb(:'transform-ws.wsdl')]]    end
 
-    get "/svggraph" do
+    get "*/svggraph" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
+
       map_name = params["map"]
-      map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
-      map ||= Mappum.catalogue(options.catalogue)[map_name]
+      map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(@catalogue)[map_name]
       return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
       graph = Mappum::MapServer::Graph.new(map)
       [200, {"Content-Type" => "image/svg+xml"}, graph.getSvg]
             
     end
-    get "/maptable" do
-      map_name = params["map"]
-      map = Mappum.catalogue(options.catalogue)[map_name]
-      return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
-      table = Mappum::MapServer::MapTable.new(map)
-      text = <<HTML
-      <body>
-        <h1>#{map_name}</h1>
-        <p>
-        #{map.desc}
-        </p>
-        #{table.getHtml}
-        <h2>Dictionaries:</h2>
-        <table border="1" cellspacing="0">
-        <tr><td>Number</td><td>Description</td><td>Technical explanation</td></tr>
-        #{table.edge_maps.keys.sort.collect{|k| "<tr><td>#{k}</td><td>#{table.edge_maps[k].desc}&nbsp;</td><td>#{explain(table.edge_maps[k])}&nbsp;</td></tr>"}}
-        </table>
-      </body>
-HTML
+    get "*/maptable" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
-      [200, {"Content-Type" => "text/html"}, text]
+      @map_name = params["map"]
+      @map = Mappum.catalogue(@catalogue)[@map_name]
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + @map_name]] if @map.nil?
+      @maptable = Mappum::MapServer::MapTable.new(@map)
+      @edge_maps = @maptable.edge_maps.keys.sort.collect{|k| [k, @maptable.edge_maps[k], explain(@maptable.edge_maps[k])]}
+
+      [200, {"Content-Type" => "text/html"}, [erb(:maptable)]]
             
     end
 
-    get "/pnggraph" do
-          map_name = params["map"]
-          map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
-          map ||= Mappum.catalogue(options.catalogue)[map_name]
-          return [404,  {"Content-Type" => "text/html"}, ["No map '#{map_name}'"]] if map.nil?
-          graph = Mappum::MapServer::Graph.new(map)
-          [200, {"Content-Type" => "image/png"}, graph.getPng]
+    get "*/pnggraph" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
+
+      map_name = params["map"]
+	  map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+	  map ||= Mappum.catalogue(@catalogue)[map_name]
+	  return [404,  {"Content-Type" => "text/html"}, ["No map '#{map_name}'"]] if map.nil?
+	  graph = Mappum::MapServer::Graph.new(map)
+	  [200, {"Content-Type" => "image/png"}, graph.getPng]
             
     end 
-    get "/doc" do
-          map_name = params["map"]
-          map = Mappum.catalogue(options.catalogue).get_bidi_map(map_name)
-          map ||= Mappum.catalogue(options.catalogue)[map_name]
-          return [404,  {"Content-Type" => "text/html"}, ["No map " + map_name]] if map.nil?
-          graph = Mappum::MapServer::Graph.new(map)
-          text = <<HTML
-          <body>
-            <h1>#{map_name}</h1>
-            <p>
-            #{map.desc}
-            </p>
-            <object type="image/svg+xml" data="/svggraph?map=#{map_name}"><img src="/pnggraph?map=#{map_name}"></object>
-            <table border="1" cellspacing="0">
-            <tr><td>Number</td><td>Description</td><td>Technical explanation</td></tr>
-            #{graph.edge_maps.keys.sort.collect{|k| "<tr><td>#{k}</td><td>#{graph.edge_maps[k].desc}&nbsp;</td><td>#{explain(graph.edge_maps[k])}&nbsp;</td></tr>"}}
-            </table>
-          </body>
-HTML
-          [200, {"Content-Type" => "text/html"}, [text]]
+    get "*/doc" do
+      @catalogue = params[:splat][0] || "ROOT"
+      @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
+
+	  @map_name = params["map"]
+	  @map = Mappum.catalogue(@catalogue).get_bidi_map(@map_name)
+	  @map ||= Mappum.catalogue(@catalogue)[@map_name]
+	  return [404,  {"Content-Type" => "text/html"}, ["No map " + @map_name]] if @map.nil?
+	  graph = Mappum::MapServer::Graph.new(@map)
+	  @edge_maps = graph.edge_maps.keys.sort.collect{|k| [k, graph.edge_maps[k], explain(graph.edge_maps[k])]}
+	  [200, {"Content-Type" => "text/html"}, [erb(:doc)]]
     end
     get "/" do
-          content404 = <<HTML
-          <body>
-          <FORM action="transform" method="post">
-             <P>
-            <select name="map">
-              <option value="auto_select" selected="true">auto select</option>
-              #{Mappum.catalogue(options.catalogue).list_map_names.collect{|mn| "<option value='#{mn}'>#{mn}</option>"}}
-            </select>
-            <input type="checkbox" name="ignore" value="false">Ignore types</input>
-            <br/>
-             <TEXTAREA name="doc" rows="20" cols="80"></TEXTAREA><br/>
-             <INPUT type="submit" value="Send"/><INPUT type="reset"/>
-             </P>
-          </FORM>
-          <BR/>
-          Bidirectional maps:<p>
-          #{Mappum.catalogue(options.catalogue).list_bidi_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a> (<a href='#{Mappum.catalogue(options.catalogue).get_bidi_map(mn).source}'>source</a>)<br/>"}}
-          </p>
-          <BR/>
-          Unidirectional maps:<p>
-          #{Mappum.catalogue(options.catalogue).list_map_names.collect{|mn| "<a href='/doc?map=#{mn}'>#{mn}</a> (<a href='/maptable?map=#{mn}'>table</a>) (<a href='#{Mappum.catalogue(options.catalogue)[mn].source}'>source</a>)<br/>"}}
-          </p>     </body>
-HTML
-          [200, {"Content-Type" => "text/html"}, [content404]]
+      @catalogue = params["catalogue"] || "ROOT"
+      @catalogues = Mappum.catalogues
+	  @bidi_maps_name_source = Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| [mn,  Mappum.catalogue(@catalogue).get_bidi_map(mn).source] }
+	  @maps_name_source = Mappum.catalogue(@catalogue).list_map_names.collect{|mn| [mn, Mappum.catalogue(@catalogue)[mn].source]}
+	  [200, {"Content-Type" => "text/html"}, [erb(:main)]]
     end
     def self.parseopt
       require 'optparse'

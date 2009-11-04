@@ -1,0 +1,15 @@
+<html>
+  <body>
+	<h1><%=@map_name%></h1>
+	<p>
+	<%=@map.desc%>
+	</p>
+	<object type="image/svg+xml" data="/<%=@catalogue%>/svggraph?map=<%=@map_name%>"><img src="/<%=@catalogue%>/pnggraph?map=<%=@map_name%>"></object>
+	<table border="1" cellspacing="0">
+	<tr><td>Number</td><td>Description</td><td>Technical explanation</td></tr>
+	<%@edge_maps.each do |k, edm, expl|%>
+	  <tr><td><%=k%></td><td><%=edm.desc%>&nbsp;</td><td><%=expl%>&nbsp;</td></tr>
+	<%end%>
+	</table>
+  </body>
+<html>

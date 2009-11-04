@@ -27,6 +27,9 @@ module Mappum
     end
     @catalogue[name]
   end
+  def self.catalogues
+    return @catalogue.keys
+  end
   #
   # Empty catalogues
   #
