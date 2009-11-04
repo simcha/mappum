@@ -33,10 +33,29 @@ module Mappum
         @def.bidi_maps << mapa.def
         return mapa.def
       end
+      #
+      # Define condition evaluated before this mapping is applyed.
+      # First argument is a label
+      # :> - left to right map
+      # :< - right to left map
+      # Second argument is a block and from elemnt is pased to the block.
+      #
+      def map_when(label,&condition)
+        case label
+          when :>, '>'
+            @def.when_l2r = condition
+          when :<, '<'
+            @def.when_r2l = condition
+         end 
+      end
+      #
+      # Add comment to mapping.
+      #
       def `(str)
         @comment ||= ""
         @comment += str
       end
+
       # Add prefix to auto map names
       def name_map_prefix(name)
         name_map(:prefix, name)
@@ -131,6 +150,16 @@ module Mappum
 
         @def.dict = attr[0][1][:dict] if attr[0].size > type_size
         @def.desc = attr[0][1][:desc] if attr[0].size > type_size
+        @def.map_when = attr[0][1][:when] if attr[0].size > type_size
+        @def.when_r2l = attr[0][1][:when_r2l] if attr[0].size > type_size
+        @def.when_l2r = attr[0][1][:when_l2r] if attr[0].size > type_size
+        if @def.normalized? and not (@def.when_r2l.nil? and  @def.when_l2r.nil?)
+          raise "r2l and l2r :when functions can be set only on bidirectional maps"  
+        end
+        if not @def.normalized? and not @def.map_when.nil?
+          raise ":when function can be set only on unidirectional maps use :when_r2l and :when_l2r or map_when function"  
+        end
+        
         @def.submap_alias = attr[0][1][:map] if attr[0].size > type_size
                     
       end   

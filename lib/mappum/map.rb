@@ -93,7 +93,7 @@ module Mappum
   
   class FieldMap < Map
     attr_accessor :dict, :desc, :left, :right, :func, :block, :to, :from, :func_on_nil, :submap_alias
-    attr_accessor :name, :l2r_name, :r2l_name, :name_prefix
+    attr_accessor :name, :l2r_name, :r2l_name, :name_prefix, :map_when, :when_r2l, :when_l2r
     # True if map is unidirectional. Map is unidirectional
     # when maps one way only.
     def normalized?
@@ -116,6 +116,8 @@ module Mappum
         map_r2l.from = self.right
         map_r2l.name = self.r2l_name
         map_r2l.r2l_name, map_r2l.l2r_name = nil, nil
+        map_r2l.map_when = self.when_r2l
+        map_r2l.when_r2l, map_r2l.when_l2r = nil, nil
         map_r2l.maps = self.maps.select do |m|
           m.to.parent == map_r2l.to
         end
@@ -127,6 +129,8 @@ module Mappum
         map_l2r.from = self.left
         map_l2r.name = self.l2r_name
         map_l2r.r2l_name, map_l2r.l2r_name = nil, nil
+        map_l2r.map_when = self.when_l2r
+        map_l2r.when_r2l, map_l2r.when_l2r = nil, nil
         map_l2r.maps = self.maps.select do |m|
           m.to.parent == map_l2r.to
         end

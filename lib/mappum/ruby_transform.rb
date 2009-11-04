@@ -33,7 +33,8 @@ module Mappum
       
       raise MapMissingException.new(from) if map.nil?
       
-      #to ||= map.to.clazz.new unless map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+      # skip mapping on false :map_when function
+      return to unless map.map_when.nil? or map.map_when.call(from)
 
       all_nils = true
       map.maps.each do |sm|
@@ -44,6 +45,10 @@ module Mappum
         else
            from_value = sm.from.value
         end
+
+        # skip to next mapping on false :map_when function
+        next unless sm.map_when.nil? or sm.map_when.call(from_value)
+
         unless sm.func.nil? or (not sm.func_on_nil? and from_value.nil?)
           from_value = sm.func.call(from_value)
         end
