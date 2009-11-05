@@ -54,8 +54,9 @@ module Mappum
         end
         unless sm.from.func.nil? or from_value.nil?
           mappum_block = sm.from.block
-            if from_value.kind_of?(Array) or
-              (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
+            if from_value.kind_of?(Array) 
+            # TODO Fix it for JavaArrays
+            #or (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
                from_value = from_value.compact.instance_eval(sm.from.func)
             else
               from_value = from_value.instance_eval(sm.from.func)
