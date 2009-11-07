@@ -12,8 +12,8 @@ module Mappum
             @edges = []
             @edge_maps = {}
             init(@map,@struct_from, @struct_to)
-          end
-          def getSvg
+        end
+        def getSvg
             cmd = "dot"
             format = "svg"
             xCmd = "#{cmd} -T#{format}"
@@ -22,8 +22,8 @@ module Mappum
             f.print(dot)
             f.close_write
             return f
-          end
-          def getPng
+        end
+        def getPng
             cmd = "dot"
             format = "png"
             xCmd = "#{cmd} -T#{format}"
@@ -32,8 +32,8 @@ module Mappum
             f.print(dot)
             f.close_write
             return f
-          end
-          def getDot
+        end
+        def getDot
             str1 = makeStruct(@struct_from)
             str2 = makeStruct(@struct_to)
             edge = @edges.join
@@ -54,10 +54,10 @@ digraph structs { node [shape=plaintext]; rankdir=LR;  nodesep=0.1;
             
             }              
 DOT
-          end
+        end
           
-          private
-          def makeStruct(struct_tree)
+        private
+        def makeStruct(struct_tree)
             str = struct_tree.line || ""
             unless struct_tree.children.nil? or struct_tree.children.empty?
               str += "<TR><TD></TD> <TD CELLPADDING=\"1\">" unless struct_tree.parent.nil? 
@@ -68,8 +68,8 @@ DOT
               str += "</TD></TR>\n" unless struct_tree.parent.nil? 
             end
             return str
-          end
-          def init(map, struct_from, struct_to)
+        end
+        def init(map, struct_from, struct_to)
             if map.normalized?
               map_from, map_to = map.from, map.to
             else
@@ -138,8 +138,8 @@ DOT
               end
             end
 
-          end
-          def get_name_and_path(element, level = 0)
+        end
+        def get_name_and_path(element, level = 0)
             #on non filed elements
             if element.kind_of?(Function)
               return "Function", "c#{element.__id__.abs}", -1              
@@ -159,7 +159,7 @@ DOT
             path = "#{path}v#{name}".gsub(":","vv") unless name.nil?
             name = "#{name}[]" if not name.nil? and element.is_array
             return name, path, level
-          end
+        end
       end 
       class StrTree
        attr_accessor :line, :parent,:children, :name
