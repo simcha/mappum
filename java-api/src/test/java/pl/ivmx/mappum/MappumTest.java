@@ -119,16 +119,4 @@ public class MappumTest extends TestCase {
     time = System.currentTimeMillis()-time;
     System.out.println(time);
   }
-  public void testSeparation(){
-    MappumApi mp = new MappumApi();
-    mp.loadMaps();
-    
-    MappumApi mp2 = new MappumApi();
-    try{
-      JavaTransform  jt = mp2.getJavaTransform();
-      fail("No maps error should be thrown");
-    }catch (Exception e) {
-      //ok
-    }
-  }
 }
