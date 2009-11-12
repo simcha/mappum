@@ -158,7 +158,9 @@ module Mappum
       return Field.new(@parent, symbol, args[0])
     end
   end
-  class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_array, :is_placeholder)
+  class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_placeholder)
+    #define is_array separetly to exclude it from equals
+    attr_accessor :is_array
     def array?
       is_array
     end
@@ -166,7 +168,7 @@ module Mappum
       is_placeholder
     end
   end
-  class Constant <  Struct.new(:value) 
+  class Constant <  Struct.new(:value,:parent) 
     def parent
       nil
     end
@@ -177,10 +179,7 @@ module Mappum
       nil      
     end
   end
-  class Function
-    def parent
-      nil
-    end
+  class Function <  Struct.new(:parent) 
     def array?
       false
     end

@@ -11,6 +11,7 @@ require 'erb'
 module Mappum
   class Mapserver < Sinatra::Default
     set :views => File.join(File.dirname(__FILE__), 'views')
+    set :public => File.join(File.dirname(__FILE__), 'public')
     configure do
       set :schema_dir => 'schema', :map_dir => 'map', :tmp_dir => nil
       set :catalogue => nil

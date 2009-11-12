@@ -178,12 +178,12 @@ module Mappum
     def initialize(*args)
       super(*args)
     end
-    def get(object, field)
+    def get(object, field, parent_field=nil)
       begin
-        super(object, field)
+        super(object, field, parent_field)
       rescue NoMethodError
         begin
-          super(object, XSD::CodeGen::GenSupport.safemethodname(field.to_s).to_sym)
+          super(object, XSD::CodeGen::GenSupport.safemethodname(field.name.to_s).to_sym, parent_field)
         rescue NoMethodError
           #for dynamic xml nil value == no methond
           if object.kind_of?(SOAP::Mapping::Object)
@@ -347,6 +347,7 @@ module Mappum
       @@parser = :libxml
     rescue Gem::LoadError
       require 'rexml/parsers/sax2parser'
+      require 'rexml/element'
       @@parser = :rexml
     end
     #

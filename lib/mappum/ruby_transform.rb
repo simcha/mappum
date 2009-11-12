@@ -40,11 +40,7 @@ module Mappum
       map.maps.each do |sm|
         from_value, to_value = nil, nil
         
-        if sm.from.respond_to?(:name)
-           from_value = get(from, sm.from.name) 
-        else
-           from_value = sm.from.value
-        end
+        from_value = get(from, sm.from, map.from) 
 
         # skip to next mapping on false :map_when function
         next unless sm.map_when.nil? or sm.map_when.call(from_value)
@@ -81,6 +77,8 @@ module Mappum
           end
         end
         unless submaps.empty? or from_value.nil?
+          #We should make some kind of test like this
+          #raise "Not an array: #{sm.from.name} inspect:" + from_value.inspect if sm.from.is_array and not from_value.kind_of?(Array)
           if from_value.kind_of?(Array) or 
               (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
             sm_v = sm.clone
@@ -92,21 +90,30 @@ module Mappum
               sm_v.to = sm.to.clone
               sm_v.to.is_array = false
             end
-            sm_v.maps = submaps if sm_v.maps.empty?
-
-            to_value = from_value.collect{|v| transform(v, sm_v)}
+            if sm_v.maps.empty?
+							sm_v.maps = submaps 
+							sm_v.maps.each{|m| m.from.parent = sm_v.from}
+							#don't add parent we need separation
+							to_value = from_value.collect{|v| transform(v, sm_v)}
+						else
+							to_value = from_value.collect{|v| transform(add_parent(v, from), sm_v)}
+						end
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             v_to = nil
             #array values are assigned after return
-            v_to = get(to, sm.to.name) unless sm.to.is_array and not sm.from.is_array
+            v_to = get(to, sm.to) unless sm.to.is_array and not sm.from.is_array
             sm_v = sm
             if sm_v.maps.empty?
               sm_v = sm.clone
               sm_v.maps = submaps
+              sm_v.maps.each{|m| m.from.parent = sm_v.from}
+              #don't add parent we need separation
+              to_value = transform(from_value, sm_v, v_to)
+            else
+              to_value = transform(add_parent(from_value, from), sm_v, v_to)
             end
-            to_value = transform(from_value, sm_v, v_to)
           end
 
         end
@@ -114,7 +121,7 @@ module Mappum
           to_value = sm.dict[to_value]
         end
         if sm.to.is_array and not sm.from.is_array
-          to_array = convert_from(get(to,sm.to.name),sm.from)
+          to_array = convert_from(get(to,sm.to),sm.from)
           to_array ||= []
           to_array << to_value
           
@@ -157,27 +164,51 @@ module Mappum
     
     protected
     
-    def get(object, field)
-      if field.nil? or object.nil?
-        return object
-      elsif
-        begin
-          return object.send(field)
-        rescue NoMethodError => e
-          #for open structures field will be defined later
-            if object.kind_of?(@default_struct_class)
-              return nil
-            else
-              raise e
-            end
-         end          
-      end
+    def get(object, field, parent_field=nil)
+		  if field.kind_of?(String) or field.kind_of?(Symbol)
+		    field_name = field
+		  else
+				unless field.respond_to?(:name)
+					return field.value
+				end
+				if field.name.nil? or object.nil?
+					return object
+				end
+				#for fields targeted at parents go up the tree
+				if (not parent_field.nil?) and field.parent != parent_field
+				  if object.respond_to?(:_mpum_parent)
+				    return get(object._mpum_parent, field, parent_field.parent)
+				  else 
+				    raise "We hit an element with no parent: #{object.inspect}"
+				  end
+				end
+				field_name = field.name
+			end
+			begin
+				return object.send(field_name)
+			rescue NoMethodError => e
+			#for open structures field will be defined later
+			if object.kind_of?(@default_struct_class)
+				return nil
+			else
+				raise e
+			end
+	   end
     end
     def convert_to(to, field_def)
       return to
     end
     def convert_from(from, field_def)
       return from
+    end
+    def add_parent(value, parent)
+      #don't work for Fixnums and Floats
+      return value if value.kind_of?(Fixnum) or value.kind_of?(Float)
+      class << value
+        attr_accessor :_mpum_parent
+      end
+      value._mpum_parent = parent
+      return value
     end
   end
   class OpenStruct < OpenStruct

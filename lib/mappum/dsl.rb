@@ -1,4 +1,4 @@
-require 'facets/kernel/instance_exec'
+#require 'facets/kernel/instance_exec'
 class Object 
   def >> field
   return {Mappum::DSL::Constant.new(self) => field} if field.kind_of?(Mappum::DSL::Field)
