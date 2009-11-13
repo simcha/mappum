@@ -261,7 +261,7 @@ module Mappum
           end
         end
         #this functions also indicate Array -> element
-        if symbol == :find or symbol == :detect
+        if symbol == :find or symbol == :detect or symbol == :select 
           @def.is_array = true
         end
         arguments = args.clone
