@@ -101,19 +101,30 @@ module Mappum
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
-            v_to = nil
+            v_to = []
             #array values are assigned after return
-            v_to = get(to, sm.to) unless sm.to.is_array and not sm.from.is_array
-            sm_v = sm
-            if sm_v.maps.empty?
-              sm_v = sm.clone
-              sm_v.maps = submaps
-              sm_v.maps.each{|m| m.from.parent = sm_v.from}
-              #don't add parent we need separation
-              to_value = transform(from_value, sm_v, v_to)
-            else
-              to_value = transform(add_parent(from_value, from), sm_v, v_to)
+            v_to << get(to, sm.to) unless sm.to.is_array and not sm.from.is_array
+            #nless one whants to update existing to array
+            if sm.to_array_take == :first
+              arr_v = get(to, sm.to)
+              v_to << arr_v[0]  if not arr_v.nil?
             end
+            if sm.to_array_take == :all
+              arr_v = get(to, sm.to)
+              v_to += arr_v  if not arr_v.nil?
+            end
+            v_to.each do |v_t|
+				sm_v = sm
+				if sm_v.maps.empty?
+				  sm_v = sm.clone
+				  sm_v.maps = submaps
+				  sm_v.maps.each{|m| m.from.parent = sm_v.from}
+				  #don't add parent we need separation
+				  to_value = transform(from_value, sm_v, v_t)
+				else
+				  to_value = transform(add_parent(from_value, from), sm_v, v_t)
+				end
+		    end
           end
 
         end
@@ -123,7 +134,7 @@ module Mappum
         if sm.to.is_array and not sm.from.is_array
           to_array = convert_from(get(to,sm.to),sm.from)
           to_array ||= []
-          to_array << to_value
+          to_array << to_value unless sm.to_array_take == :first or sm.to_array_take == :all
           
           if to_array.empty? and sm.strip_empty?
             to_array = nil

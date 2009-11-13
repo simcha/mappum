@@ -49,6 +49,29 @@ module Mappum
          end 
       end
       #
+      # Define how "to" array is passed to function. 
+      # First argument is a label
+      # :> - left to right map
+      # :< - right to left map
+      # :<=> - both maps
+      # Second argument is the_way and can be:
+      # :new - will create new element
+      # :first - will map to the first element
+      # :all - will map to all elements
+      #
+      def to_array_take(label, the_way)
+        raise "the_way should be one of :new, :first, :all" unless [:new, :first, :all].include? the_way.to_sym 
+        case label
+          when :<=>
+            @def.to_array_take_l2r = the_way.to_sym
+            @def.to_array_take_r2l = the_way.to_sym
+          when :>, '>'
+            @def.to_array_take_l2r = the_way.to_sym
+          when :<, '<'
+            @def.to_array_take_r2l = the_way.to_sym
+         end 
+      end
+      #
       # Add comment to mapping.
       #
       def `(str)
@@ -159,7 +182,10 @@ module Mappum
         if not @def.normalized? and not @def.map_when.nil?
           raise ":when function can be set only on unidirectional maps use :when_r2l and :when_l2r or map_when function"  
         end
-        
+        @def.to_array_take = attr[0][1][:to_array_take] if attr[0].size > type_size
+        if not @def.normalized? and not @def.to_array_take.nil?
+          raise ":to_array_take property can be set only on unidirectional maps use :to_array_take_r2l and :to_array_take_l2r or to_array_take function"  
+        end
         @def.submap_alias = attr[0][1][:map] if attr[0].size > type_size
                     
       end   
