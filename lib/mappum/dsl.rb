@@ -234,6 +234,15 @@ module Mappum
         @def.is_placeholder = placeholder
       end
   
+      def to_s
+        method_missing(:to_s)
+      end
+      def methods
+        method_missing(:methods)
+      end     
+      def inspect
+        method_missing(:inspect)
+      end      
       def type(*attr)
         method_missing(:type, *attr)
       end
