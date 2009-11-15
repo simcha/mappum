@@ -150,9 +150,18 @@ module Mappum
         else
           raise e
         end
+      rescue MappumException => e
+          e.from = to_xml_string(e.from)
+          e.to = to_xml_string(e.to)
+          e.from_root = to_xml_string(e.from_root)
+          e.to_root = to_xml_string(e.to_root)
+          raise e
       end
       
-      to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
+	  return to_xml_string(transformed, map, soap, to_qname)
+    end
+    def to_xml_string(transformed, map=nil, to_qname=nil, soap=false)
+       to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
       if to_mapper.nil?
         to_mapper = @default_mapper
       end
@@ -170,8 +179,7 @@ module Mappum
         to_preparsed = SOAP::SOAPEnvelope.new(SOAP::SOAPHeader.new, SOAP::SOAPBody.new(to_preparsed))
       end
       generator = SOAP::Generator.new(XSD::Mapping::Mapper::MAPPING_OPT)
-      to_xml = generator.generate(to_preparsed, nil)
-      return to_xml
+      return generator.generate(to_preparsed, nil)
     end
   end
   class RubyXmlTransform < RubyTransform

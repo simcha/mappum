@@ -3,6 +3,7 @@ require 'set'
 require 'mappum'
 require 'ostruct'
 require 'mappum/autoconv_catalogue'
+require 'mappum/mappum_exception'
 
 module Mappum
   #
@@ -24,7 +25,7 @@ module Mappum
     # Method for transforming from object using map to "to" object.
     #
     def transform(from, map=nil, to=nil)
-      
+      begin
       raise RuntimeError.new("Map catalogue is empty!") if @map_catalogue.nil?
       
       map ||= @map_catalogue[from.class]
@@ -38,6 +39,7 @@ module Mappum
 
       all_nils = true
       map.maps.each do |sm|
+        begin
         from_value, to_value = nil, nil
         
         from_value = get(from, sm.from, map.from) 
@@ -165,12 +167,21 @@ module Mappum
             to.send("#{sm.to.name}=", convert_to(to_value, sm.to)) unless to_value.nil?
           end
         end
-        
+       rescue Exception => e
+        e = MappumException.new(e) unless e.kind_of?(MappumException)
+        e.wrap(sm, from_value, to_value)
+        raise e
+       end 
       end
       if all_nils and map.strip_empty?
         return nil
       end
       return to
+      rescue Exception => e
+        e = MappumException.new(e) unless e.kind_of?(MappumException)
+        e.wrap(map, from, to)
+        raise e
+      end
     end
     
     protected
@@ -230,7 +241,7 @@ module Mappum
       method_missing(:id, *attr)
     end
   end
-  class MapMissingException < RuntimeError
+  class MapMissingException < MappumException
     attr_accessor :from
     def initialize(from, msg=nil)
       msg ||= "Map for class \"#{from.class}\" not found!"

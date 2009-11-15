@@ -2,7 +2,7 @@ module Mappum
 # Base Map class representing mapping betwean two or more types, properties etc.
   class Map
     
-    attr_accessor :maps, :bidi_maps, :strip_empty, :source
+    attr_accessor :maps, :bidi_maps, :strip_empty, :source, :src_ref
     
     def initialize
       @maps = []
@@ -163,7 +163,7 @@ module Mappum
       return Field.new(@parent, symbol, args[0])
     end
   end
-  class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_placeholder)
+  class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_placeholder, :src_ref)
     #define is_array separetly to exclude it from equals
     attr_accessor :is_array
     def array?

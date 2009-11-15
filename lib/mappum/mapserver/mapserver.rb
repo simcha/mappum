@@ -12,17 +12,20 @@ module Mappum
   class Mapserver < Sinatra::Default
     set :views => File.join(File.dirname(__FILE__), 'views')
     set :public => File.join(File.dirname(__FILE__), 'public')
+    set :show_exceptions => false
+    set :raise_errors => false    
     configure do
       set :schema_dir => 'schema', :map_dir => 'map', :tmp_dir => nil
       set :catalogue => nil
       set :port => 9292      
 
-      # FIXME make configurable
-      #wl = Mappum::WorkdirLoader.new(options.schema_dir, options.tmp_dir, options.map_dir)
+      
       @wl = Mappum::WorkdirLoader.new('schema', 'map')
       @wl.generate_and_require
     end
     helpers do
+      alias_method :h, :escape_html
+
       def explain_func(element)
         name = element.name.to_s
         name ||= "self"    
@@ -196,6 +199,12 @@ module Mappum
 	  @maps_name_source = Mappum.catalogue(@catalogue).list_map_names.collect{|mn| [mn, Mappum.catalogue(@catalogue)[mn].source]}
 	  [200, {"Content-Type" => "text/html"}, [erb(:main)]]
     end
+    error do
+      @xml_convertor = Syntax::Convertors::HTML.for_syntax "xml"
+      @exception = request.env['sinatra.error']
+      erb(:error)
+    end
+
     def self.parseopt
       require 'optparse'
       OptionParser.new { |op|

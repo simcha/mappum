@@ -7,6 +7,23 @@ class Object
 end
 module Mappum
   module DSL
+    def  self.get_src_ref
+       caller_arr = caller(2)
+      file = nil
+      begin
+        caller_line = caller_arr.shift
+        file = parse_caller(caller_line).first
+      end while file == __FILE__ and not caller_arr.empty?
+      return caller_line
+    end 
+    def self.parse_caller(at)
+      if /^(.+?):(\d+)(?::in `(.*)')?/ =~ at
+        file = Regexp.last_match[1]
+		line = Regexp.last_match[2].to_i
+		method = Regexp.last_match[3]
+		[file, line, method]
+	  end
+    end
     class Map
       attr_accessor :def
       def initialize
@@ -15,7 +32,7 @@ module Mappum
       def map(*attr, &block)
         mapa  = FieldMap.new(attr)
         mapa.def.source = @def.source
-
+        mapa.def.src_ref = DSL.get_src_ref
         mapa.def.desc = @comment
         @comment = nil
         
@@ -223,7 +240,7 @@ module Mappum
     end
     
     class Field < Mappet
-      def initialize(parent, name, clazz, placeholder = false)
+      def initialize(parent, name, clazz, placeholder = false, src_ref = nil)
         @def =  Mappum::Field.new
         @def.parent = parent
         @def.name = name
@@ -232,6 +249,7 @@ module Mappum
         @def.is_root = false
         @def.is_root = false
         @def.is_placeholder = placeholder
+        @def.src_ref = src_ref
       end
   
       def to_s
@@ -255,7 +273,7 @@ module Mappum
           if(symbol == :self)
             return Field.new(@def, nil, args[0], true)
           end
-          return Field.new(@def, symbol, args[0])
+          return Field.new(@def, symbol, args[0], false, DSL.get_src_ref)
         end
   
         if symbol == :[]
