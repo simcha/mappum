@@ -176,7 +176,7 @@ module Mappum
       if all_nils and map.strip_empty?
         return nil
       end
-      return to
+        return to
       rescue Exception => e
         e = MappumException.new(e) unless e.kind_of?(MappumException)
         e.wrap(map, from, to)
