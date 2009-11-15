@@ -1,0 +1,61 @@
+<html>
+     <head>
+       <style type='text/css'>
+		 .normal {font-size: 14; font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Garuda'; }
+		 .namespace { color: #B66; font-weight: bold;}
+		 .tag { color: #660066; font-weight: bold;}
+		 .comment { color: #005; font-style: italic; }
+		 .punct { color: #000; font-weight: bold; }
+		 .string { color: #0033ff; }
+		 .number { color: #F99; }
+		 .attribute { color: #000; font-weight: bold; }
+       </style>
+      </head>
+	<body>
+<%begin%>	
+<%if @exception.kind_of?(Mappum::MappumException)%>
+	When mapping
+	 <h3>From: <%=h @exception.from_name%></h3> 
+	 <h3>To: <%=h @exception.to_name%></h3> 
+	 
+	Exception was thrown: 
+	<h3<strong><%=h  @exception.class %></strong></h3>
+	<h4><strong><%=h  @exception.message %></strong></h4>
+	Mapping from (for nil parent is displayed):<br/>
+	<span class="normal">
+		<%=  @xml_convertor.convert(@exception.from) %><br/>
+	</span>
+	Mapping to (for nil parent is displayed):<br/>
+	<span class="normal">
+		<%=  @xml_convertor.convert(@exception.to) %><br/>
+	</span>
+	<br/>
+	Mappum backtrace:<br/>
+	<%=  @exception.mappum_backtrace.join "<br/>" unless @exception.mappum_backtrace.nil? %><br/>
+	<br/>
+	Mapping from root:<br/>
+	<span class="normal">
+		<%= @xml_convertor.convert(@exception.from_root) %><br/>
+	</span>
+	Mapping to root:<br/>
+	<span class="normal">
+		<%= @xml_convertor.convert(@exception.to_root) %><br/>
+	</span>
+	<br/>
+<%end%>
+<%=h  @exception.class %> <br/>
+<%=h  @exception.message %> <br/>
+<%=  @exception.backtrace.join "<br/>" %>
+<%rescue => err%>
+<br/>
+Error when rendering this page:<br/>
+<%=h err.message unless err.nil?%>
+<%= err.backtrace.join("<br/>")  unless err.nil? or err.backtrace.nil?%>
+<br/>
+Orginal error:<br/>
+<%= sinatra_error = request.env['sinatra.error'] %>
+<%=h sinatra_error.message unless sinatra_error.nil?%>
+<%= sinatra_error.backtrace.join("<br/>")  unless sinatra_error.nil? or sinatra_error.backtrace.nil?%>
+<%end%>
+	</body>
+<html>

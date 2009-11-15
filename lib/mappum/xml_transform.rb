@@ -148,6 +148,10 @@ module Mappum
         if e.from == parsed
           raise MapMissingException.new(e.from,"Map for element \"#{from_qname}\" not found!")
         else
+          e.from = to_xml_string(e.from)
+          e.to = to_xml_string(e.to)
+          e.from_root = to_xml_string(e.from_root)
+          e.to_root = to_xml_string(e.to_root)
           raise e
         end
       rescue MappumException => e
