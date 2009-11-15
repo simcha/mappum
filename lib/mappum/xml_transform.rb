@@ -162,7 +162,7 @@ module Mappum
           raise e
       end
       
-	  return to_xml_string(transformed, map, soap, to_qname)
+	  return to_xml_string(transformed, map, to_qname, soap)
     end
     def to_xml_string(transformed, map=nil, to_qname=nil, soap=false)
        to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
