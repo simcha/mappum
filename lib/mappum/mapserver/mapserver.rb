@@ -81,17 +81,24 @@ module Mappum
       @catalogue = params[:splat][0] || "ROOT"
       @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
-	  map_name = nil
-	  map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
-	  force_openstruct = false
-	  force_openstruct = params["ignore"] unless params["map"].nil?
+      map_name = nil
+      map_name = params["map"] unless params["map"].nil? or params["map"] == "auto_select"
+      from_qname_str = params["from_qname"] unless params["from_qname"].nil? or params["from_qname"] == "auto_select"
+      from_qname = nil
+      unless from_qname_str.nil? or from_qname_str==''
+        /^\{([^}]*)\}(.*)$/  =~ from_qname_str
+        from_qname = XSD::QName.new($1,$2)
+      end
+      force_openstruct = false
+      force_openstruct = params["ignore"] unless params["map"].nil?
 
-	  rt = Mappum::XmlTransform.new(@catalogue, force_openstruct)
-	  
-	  xml = params["doc"]
-	  content = rt.transform(xml,map_name)
-	  
-	  [200, {"Content-Type" => "text/xml"}, [content]]
+      rt = Mappum::XmlTransform.new(@catalogue, force_openstruct)
+      
+      xml = params["doc"]
+
+      content = rt.transform(xml,map_name, from_qname)
+      
+      [200, {"Content-Type" => "text/xml"}, [content]]
     end
     post "*/transform-ws" do
       @catalogue = params[:splat][0] || "ROOT"
@@ -173,31 +180,31 @@ module Mappum
       @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
       map_name = params["map"]
-	  map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
-	  map ||= Mappum.catalogue(@catalogue)[map_name]
-	  return [404,  {"Content-Type" => "text/html"}, ["No map '#{map_name}'"]] if map.nil?
-	  graph = Mappum::MapServer::Graph.new(map)
-	  [200, {"Content-Type" => "image/png"}, graph.getPng]
+      map = Mappum.catalogue(@catalogue).get_bidi_map(map_name)
+      map ||= Mappum.catalogue(@catalogue)[map_name]
+      return [404,  {"Content-Type" => "text/html"}, ["No map '#{map_name}'"]] if map.nil?
+      graph = Mappum::MapServer::Graph.new(map)
+      [200, {"Content-Type" => "image/png"}, graph.getPng]
             
     end 
     get "*/doc" do
       @catalogue = params[:splat][0] || "ROOT"
       @catalogue = @catalogue[1..-1] if @catalogue[0..0] == "/"
 
-	  @map_name = params["map"]
-	  @map = Mappum.catalogue(@catalogue).get_bidi_map(@map_name)
-	  @map ||= Mappum.catalogue(@catalogue)[@map_name]
-	  return [404,  {"Content-Type" => "text/html"}, ["No map " + @map_name]] if @map.nil?
-	  graph = Mappum::MapServer::Graph.new(@map)
-	  @edge_maps = graph.edge_maps.keys.sort.collect{|k| [k, graph.edge_maps[k], explain(graph.edge_maps[k])]}
-	  [200, {"Content-Type" => "text/html"}, [erb(:doc)]]
+      @map_name = params["map"]
+      @map = Mappum.catalogue(@catalogue).get_bidi_map(@map_name)
+      @map ||= Mappum.catalogue(@catalogue)[@map_name]
+      return [404,  {"Content-Type" => "text/html"}, ["No map " + @map_name]] if @map.nil?
+      graph = Mappum::MapServer::Graph.new(@map)
+      @edge_maps = graph.edge_maps.keys.sort.collect{|k| [k, graph.edge_maps[k], explain(graph.edge_maps[k])]}
+      [200, {"Content-Type" => "text/html"}, [erb(:doc)]]
     end
     get "/" do
       @catalogue = params["catalogue"] || "ROOT"
       @catalogues = Mappum.catalogues
-	  @bidi_maps_name_source = Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| [mn,  Mappum.catalogue(@catalogue).get_bidi_map(mn).source] }
-	  @maps_name_source = Mappum.catalogue(@catalogue).list_map_names.collect{|mn| [mn, Mappum.catalogue(@catalogue)[mn].source]}
-	  [200, {"Content-Type" => "text/html"}, [erb(:main)]]
+      @bidi_maps_name_source = Mappum.catalogue(@catalogue).list_bidi_map_names.collect{|mn| [mn,  Mappum.catalogue(@catalogue).get_bidi_map(mn).source] }
+      @maps_name_source = Mappum.catalogue(@catalogue).list_map_names.collect{|mn| [mn, Mappum.catalogue(@catalogue)[mn].source]}
+      [200, {"Content-Type" => "text/html"}, [erb(:main)]]
     end
     error do
       @xml_convertor = Syntax::Convertors::HTML.for_syntax "xml"

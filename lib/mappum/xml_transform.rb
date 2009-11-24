@@ -54,6 +54,12 @@ class XSD::Mapping::Mapper
     return ret_qname
   
   end
+  def self.get_class_from_qname(qname)
+    mapper = find_mapper_for_type(qname)
+    return nil if mapper.nil?
+    sch =  mapper.registry.schema_definition_from_elename(qname)
+    return sch.class_for
+  end
   def self.find_mapper_for_type(qname)
     ret_maper=nil
     #FIXME add cache
@@ -126,18 +132,20 @@ module Mappum
       
             
       from_mapper = XSD::Mapping::Mapper.find_mapper_for_type(from_qname)
+      
       if from_mapper.nil?
          from_mapper = @default_mapper
       end
      
+      from_clazz = XSD::Mapping::Mapper.get_class_from_qname(from_qname) unless from_qname.nil?
       begin
-        parsed =SOAP::Mapping.soap2obj(preparsed, from_mapper.registry, nil)
+        parsed =SOAP::Mapping.soap2obj(preparsed, from_mapper.registry, from_clazz)
       rescue NoMethodError => e
         raise ParsingFailedException.new("Parsing failed for xml with root element: #{from_qname}")
       end
 
       map ||= @ruby_transform.map_catalogue[from_qname]
-      map ||= @ruby_transform.map_catalogue[from_qname.name.to_sym]
+      map ||= @ruby_transform.map_catalogue[from_qname.name.to_sym] unless from_qname.name.nil?
       if not map.nil? and not map.kind_of?(Map)
         map = @ruby_transform.map_catalogue[map.to_sym]
       end
