@@ -60,8 +60,7 @@ module Mappum
               from_value = from_value.instance_eval(sm.from.func)
             end
         end
-
-       submaps = sm.maps
+        submaps = sm.maps
         if sm.maps.empty?
           unless sm.submap_alias.nil? or sm.submap_alias.empty?
             submaps = @map_catalogue[sm.submap_alias].maps
@@ -115,6 +114,8 @@ module Mappum
               arr_v = get(to, sm.to)
               v_to += arr_v  if not arr_v.nil?
             end
+            #array values are assigned after return
+            v_to = [nil] if sm.to.is_array and not sm.from.is_array and v_to.empty?
             v_to.each do |v_t|
 				sm_v = sm
 				if sm_v.maps.empty?
