@@ -12,7 +12,9 @@ module Mappum
     end
     
     protected
-    
+    def is_array?(obj)
+      return (obj.kind_of?(Array) or obj.kind_of?(ArrayJavaProxy) or obj.kind_of?(Set) )
+    end
     def convert_to (to, field_def)
       if to.kind_of? Array then
         jtype = field_def.clazz

@@ -1,6 +1,7 @@
 package iv;
 
 import java.util.Date;
+import java.util.Set;
 
 public class Client {
   
@@ -76,7 +77,7 @@ public class Client {
   private String mainPhoneType;
   private Address address;
   private String orderBy;
-  private NameType[] partners;
+  private Set<NameType> partners;
   private Date updated;
 
   public Date getUpdated() {
@@ -92,11 +93,11 @@ public class Client {
   public void setOrderBy(String orderBy) {
     this.orderBy = orderBy;
   }
-  public NameType[] getPartners() {
+  public Set<NameType> getPartners() {
     return partners;
   }
 
-  public void setPartners(NameType[] partners) {
+  public void setPartners(Set<NameType> partners) {
     this.partners = partners;
   }
   /**

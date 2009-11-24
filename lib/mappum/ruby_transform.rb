@@ -52,7 +52,7 @@ module Mappum
         end
         unless sm.from.func.nil? or from_value.nil?
           mappum_block = sm.from.block
-            if from_value.kind_of?(Array) 
+            if from_value.kind_of?(Array)
             # TODO Fix it for JavaArrays
             #or (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
                from_value = from_value.compact.instance_eval(sm.from.func)
@@ -80,8 +80,7 @@ module Mappum
         unless submaps.empty? or from_value.nil?
           #We should make some kind of test like this
           #raise "Not an array: #{sm.from.name} inspect:" + from_value.inspect if sm.from.is_array and not from_value.kind_of?(Array)
-          if from_value.kind_of?(Array) or 
-              (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
+          if is_array?(from_value)
             sm_v = sm.clone
             if sm_v.from.is_array
               sm_v.from = sm.from.clone
@@ -186,7 +185,9 @@ module Mappum
     end
     
     protected
-    
+    def is_array?(obj)
+      return obj.kind_of?(Array)
+    end
     def get(object, field, parent_field=nil)
 		  if field.kind_of?(String) or field.kind_of?(Symbol)
 		    field_name = field
