@@ -170,20 +170,20 @@ module Mappum
             to.send("#{sm.to.name}=", convert_to(to_value, sm.to, to)) unless to_value.nil?
           end
         end
-#       rescue Exception => e
-#        e = MappumException.new(e) unless e.kind_of?(MappumException)
-#        e.wrap(sm, from_value, to_value)
-#        raise e
+       rescue Exception => e
+        e = MappumException.new(e) unless e.kind_of?(MappumException)
+        e.wrap(sm, from_value, to_value)
+        raise e
        end 
       end
       if all_nils and map.strip_empty?
         return nil
       end
         return to
-#      rescue Exception => e
-#        e = MappumException.new(e) unless e.kind_of?(MappumException)
-#        e.wrap(map, from, to)
-#        raise e
+      rescue Exception => e
+        e = MappumException.new(e) unless e.kind_of?(MappumException)
+        e.wrap(map, from, to)
+        raise e
       end
     end
     
