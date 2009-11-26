@@ -13,23 +13,39 @@ module Mappum
     
     protected
     def is_array?(obj)
-      return (obj.kind_of?(Array) or obj.kind_of?(ArrayJavaProxy) or obj.kind_of?(Set) )
+      return (obj.kind_of?(Array) or obj.kind_of?(ArrayJavaProxy) or obj.kind_of?(Set) or obj.kind_of?(Java::JavaUtil::Set))
     end
-    def convert_to (to, field_def)
+    
+    def convert_to (to, field_def, parent)
       if to.kind_of? Array then
-        jtype = field_def.clazz
-        jtype ||= "String"
-        return to.to_java(jtype)
+        param_type = nil
+        unless parent.nil?
+          jmethod = parent.java_class.declared_method_smart "set#{classify(field_def.name.to_s)}".to_sym
+          param_type = jmethod.parameter_types[0]
+        end
+        if param_type.nil? or param_type.array?
+          jtype = field_def.clazz
+          jtype ||= "String"
+          return to.to_java(jtype)
+        else param_type == java.util.Set.java_class
+          return java.util.LinkedHashSet.new(to)
+        end
       else 
         return to
       end
     end
     def convert_from (from, field_def)
-        if from.kind_of? ArrayJavaProxy then
+        if from.kind_of?(ArrayJavaProxy) then
           return from.to_ary
-        else 
+        elsif from.kind_of?(Java::JavaUtil::Set) then 
+           return from.to_a
+        else
           return from
         end
+    end
+    private
+    def classify(string)
+      return string.gsub(/(^|_)(.)/) { $2.upcase }
     end
   end
   class JavaApi < Java::pl.ivmx.mappum.MappumApi

@@ -53,10 +53,13 @@ module Mappum
         unless sm.from.func.nil? or from_value.nil?
           mappum_block = sm.from.block
             if from_value.kind_of?(Array)
-            # TODO Fix it for JavaArrays
-            #or (Module.constants.include? "ArrayJavaProxy" and from_value.kind_of?(Module.const_get(:ArrayJavaProxy)))
-               from_value = from_value.compact.instance_eval(sm.from.func)
+                from_value = from_value.compact.instance_eval(sm.from.func)
             else
+              # TODO Fix it for Java to make campact as well
+              #non real arrays
+              if is_array?(from_value)
+                from_value = convert_from(from_value,sm.from)
+              end
               from_value = from_value.instance_eval(sm.from.func)
             end
         end
@@ -149,7 +152,7 @@ module Mappum
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
-            to.send("#{sm.to.name}=", convert_to(to_array, sm.to)) unless to_array.nil?
+            to.send("#{sm.to.name}=", convert_to(to_array, sm.to, to)) unless to_array.nil?
           end
         else
 
@@ -164,23 +167,23 @@ module Mappum
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new 
-            to.send("#{sm.to.name}=", convert_to(to_value, sm.to)) unless to_value.nil?
+            to.send("#{sm.to.name}=", convert_to(to_value, sm.to, to)) unless to_value.nil?
           end
         end
-       rescue Exception => e
-        e = MappumException.new(e) unless e.kind_of?(MappumException)
-        e.wrap(sm, from_value, to_value)
-        raise e
+#       rescue Exception => e
+#        e = MappumException.new(e) unless e.kind_of?(MappumException)
+#        e.wrap(sm, from_value, to_value)
+#        raise e
        end 
       end
       if all_nils and map.strip_empty?
         return nil
       end
         return to
-      rescue Exception => e
-        e = MappumException.new(e) unless e.kind_of?(MappumException)
-        e.wrap(map, from, to)
-        raise e
+#      rescue Exception => e
+#        e = MappumException.new(e) unless e.kind_of?(MappumException)
+#        e.wrap(map, from, to)
+#        raise e
       end
     end
     
@@ -219,7 +222,7 @@ module Mappum
 			end
 	   end
     end
-    def convert_to(to, field_def)
+    def convert_to(to, field_def, parent)
       return to
     end
     def convert_from(from, field_def)

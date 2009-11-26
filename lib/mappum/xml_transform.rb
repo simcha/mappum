@@ -216,6 +216,11 @@ module Mappum
     end
   end
   class TreeElement < Struct.new(:name, :elements, :is_array, :clazz)
+    include Comparable
+    def <=>(anOther)
+      return name <=> null if anOther.nil?
+      name <=> anOther.name
+    end
   end
   # Class supporting loading working directory of the layout:
   #
@@ -316,6 +321,7 @@ module Mappum
         schema_definition.elements.each do |element|
           subelems << defined_element_trees(element)
         end
+        subelems.sort!
         return TreeElement.new(name, subelems, is_array, nil)
       end
 

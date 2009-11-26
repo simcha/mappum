@@ -9,7 +9,7 @@ import java.util.List;
  * @author Jan Topinski (jtopinski@ivmx.pl)
  *
  */
-public interface TreeElement {
+public interface TreeElement extends Comparable<TreeElement>{
   public String getName();
   public void setName(String name);
   public List<TreeElement> getElements();
