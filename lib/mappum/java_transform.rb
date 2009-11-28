@@ -10,7 +10,14 @@ module Mappum
     def initialize(*args)
       super(*args)
     end
-    
+    def transform(from, map=nil, to=nil, options={})
+
+      if map.kind_of?(Java::JavaUtil::Map)
+        options = map
+        map = nil
+      end
+      super(from, map, to, options) 
+    end
     protected
     def is_array?(obj)
       return (obj.kind_of?(Array) or obj.kind_of?(ArrayJavaProxy) or obj.kind_of?(Set) or obj.kind_of?(Java::JavaUtil::Set))

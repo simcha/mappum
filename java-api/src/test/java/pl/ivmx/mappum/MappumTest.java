@@ -6,6 +6,8 @@ package pl.ivmx.mappum;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import iv.Client;
 import iv.Person;
@@ -16,7 +18,15 @@ import junit.framework.TestCase;
  *
  */
 public class MappumTest extends TestCase {
-
+   class Context {
+      Map properties;
+      public Map getProperties() {
+        return properties;
+      }
+      public void setProperties(Map properties) {
+        this.properties = properties;
+      }
+   }
   /* (non-Javadoc)
    * @see junit.framework.TestCase#setUp()
    */
@@ -33,10 +43,36 @@ public class MappumTest extends TestCase {
     assertEquals(null,treeElement.getClazz());
     assertEquals("Client",treeElement.getName());
     assertEquals(false,treeElement.getIsArray());
-    assertEquals(10,treeElement.getElements().size());
+    assertEquals(11,treeElement.getElements().size());
     wl.cleanup();
   }
+  
+  public void testContext(){
+    MappumApi mp = new MappumApi();
+    mp.loadMaps();
+    JavaTransform jt = mp.getJavaTransform();
 
+    Person per = newPerson();
+    Client cli = null;
+    Person person = null;
+   
+    HashMap props = new HashMap();
+    props.put("Title", "Sir");
+    Context context = new Context();
+    context.setProperties(props);
+    HashMap options = new HashMap();
+    options.put("context", context);
+   
+    cli = (Client) jt.transform(per, options);     
+    person = (Person) jt.transform(cli, options);
+
+    assertEquals("2",cli.getSexId());
+    assertEquals("Skoryski",cli.getSurname());
+    assertEquals("M",person.getSex());
+    assertEquals("Skory",person.getName());
+    assertEquals("Sir",person.getTitle());
+  }
+  
   public void testTransform(){
     MappumApi mp = new MappumApi();
     mp.loadMaps();
@@ -58,6 +94,8 @@ public class MappumTest extends TestCase {
     assertEquals("M",person.getSex());
     assertEquals("Skory",person.getName());
   }
+
+
   /**
    * @return
    */

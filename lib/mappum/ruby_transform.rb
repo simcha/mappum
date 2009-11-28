@@ -207,7 +207,9 @@ module Mappum
 					return field.value
 				end
         if field.kind_of?(ContextField)
-          return options[:context]
+          ctx = options[:context]
+          ctx ||= options["context"]
+          return ctx 
         end
 				if field.name.nil? or object.nil?
 					return object

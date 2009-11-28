@@ -10,7 +10,7 @@ Mappum.catalogue_add do
   map Person,Client do |p, c|
 
     #simple mapping
-    map p.title <=> c.title
+    map p.title <=> context.properties["Title"]
 
     #map with simple function call
     map p.person_id << c.cid.downcase
