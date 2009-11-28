@@ -70,6 +70,7 @@ class TestExample < Test::Unit::TestCase
     per.date_updated = Date.today
     per.spouse = ERP::Person.new
     per.spouse.name = "Linda"
+    per.properties = {:country => "Poland"}
     
     cli = rt.transform(per)
     
@@ -79,7 +80,7 @@ class TestExample < Test::Unit::TestCase
     assert_equal("Skoryski", cli.surname)
     assert_equal(CRM::Address, cli.address.class)
     assert_equal("Victoria", cli.address.street)
-    assert_equal(["j@j.com", "k@k.com", "l@l.com"], cli.emails)
+    assert_equal({ 0 => "j@j.com", 1 => "k@k.com", 2 => "l@l.com"}, cli.emails)
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
     assert_equal("Last", cli.order_by)
@@ -87,8 +88,8 @@ class TestExample < Test::Unit::TestCase
     assert_equal("Wife", cli.partners[0].type)
     assert_equal("Linda", cli.partners[1].name)
     assert_equal("Friend", cli.partners[1].type)
+    assert_equal("Poland", cli.country)
     assert(cli.updated.kind_of?(Time))
-    
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end
@@ -105,6 +106,7 @@ class TestExample < Test::Unit::TestCase
     per.address = ERP::Address.new
     per.address.street = "Victoria"
     per.date_updated = Date.today
+    per.properties = {:country => "Poland"}
 
 
     cli = rt.transform(per)
@@ -130,10 +132,11 @@ class TestExample < Test::Unit::TestCase
     per.email2 = "l@l.com"
     per.main_phone = ERP::Phone.new("7869876")
     per.date_updated = Date.today
+    per.properties = {:country => "Poland"}
     
     cli = rt.transform(per)
     
-    assert_equal(["j@j.com", "l@l.com", nil], cli.emails)
+    assert_equal({0 => "j@j.com", 1 => "l@l.com", 2 => nil}, cli.emails)
 
     per2 = rt.transform(cli)
     assert_equal(per, per2)

@@ -245,7 +245,6 @@ module Mappum
         @def.parent = parent
         @def.name = name
         @def.clazz = clazz
-        @def.is_array = false
         @def.is_root = false
         @def.is_root = false
         @def.is_placeholder = placeholder
@@ -279,19 +278,28 @@ module Mappum
         if symbol == :[]
           #empty [] is just indication that field is an array not function      
           if args.size == 0
-            @def.is_array = true
+            @def.enum_type = Array
             return self
           end
-          #[n] indicates both mapping function and array
-          if args.size == 1 and args[0].instance_of?(Fixnum)
-            @def.is_array = true
+          #[n] indicates both mapping function and Hash
+          if args.size == 1
+            @def.enum_type = Hash
           end
         end
-        #this functions also indicate Array -> element
+        #this functions also indicate enumerable -> element
         if symbol == :find or symbol == :detect or symbol == :select 
-          @def.is_array = true
+          @def.enum_type = Array
         end
-        arguments = args.clone
+        arguments = args.clone.collect do |a|
+          ret = nil
+          if a.kind_of? Symbol
+            ret = ":'#{a}'"
+          elsif a.kind_of? String
+            ret = "'#{a}'"
+          else
+            ret = a
+          end
+        end
         unless block.nil?
           arguments << "&mappum_block"
           @def.block = block

@@ -164,10 +164,10 @@ module Mappum
     end
   end
   class Field < Struct.new(:name, :clazz, :parent, :func, :block, :is_root, :is_placeholder, :src_ref)
-    #define is_array separetly to exclude it from equals
-    attr_accessor :is_array
+    #define enum_type separetly to exclude it from equals
+    attr_accessor :enum_type
     def array?
-      is_array
+      not enum_type.nil?
     end
     def placeholder?
       is_placeholder

@@ -15,9 +15,9 @@ module Mappum
           from_suffix, to_suffix = "",""
           
 		  add_to_mappum_backtrace(map)
-		  from_suffix = "[]" if map.from.is_array
+		  from_suffix = "[]" if map.from.array?
 		  add_from_name(map.from.name, from_suffix)
-		  to_suffix = "[]" if map.to.is_array
+		  to_suffix = "[]" if map.to.array?
 		  add_to_name(map.to.name, to_suffix)
 	    end
 		@to = to if @to.nil?
