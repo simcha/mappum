@@ -2,6 +2,7 @@ package iv;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.HashMap;
 
 public class Client {
   
@@ -72,7 +73,7 @@ public class Client {
   private String surname;
   private String sexId;
   private String[] phones;
-  private String[] emails;
+  private HashMap emails;
   private String mainPhone;
   private String mainPhoneType;
   private Address address;
@@ -187,13 +188,13 @@ public class Client {
   /**
    * @return the emails
    */
-  public String[] getEmails() {
+  public HashMap getEmails() {
     return emails;
   }
   /**
    * @param emails the emails to set
    */
-  public void setEmails(String[] emails) {
+  public void setEmails(HashMap emails) {
     this.emails = emails;
   }
   /**

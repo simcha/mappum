@@ -41,11 +41,11 @@ Mappum.catalogue_add do
     map p.email2 <=> c.emails[1]
     map p.email3 <=> c.emails[2]
     
-    map p.spouse(Person) <=> c.partners(Client::NameType)[0] do |ps,cp|
+    map p.spouse(Person) <=> c.partners(Client::NameType).find{|cp|cp.type == "Wife"} do |ps,cp|
       map ps.name <=> cp.name
       "Wife" >> cp.type
     end
-    map p.spouse(Person) <=> c.partners(Client::NameType)[1] do |ps,cp|
+    map p.spouse(Person) <=> c.partners(Client::NameType).find{|cp|cp.type == "Friend"} do |ps,cp|
       map ps.name <=> cp.name
       "Friend" >> cp.type
     end   
