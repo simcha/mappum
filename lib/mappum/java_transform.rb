@@ -17,7 +17,7 @@ module Mappum
     end
     
     def convert_to (to, field_def, parent)
-      if to.kind_of? Array then
+      if to.kind_of? Array or to.kind_of? Hash or to.kind_of? Set then
         param_type = nil
         unless parent.nil?
           jmethod = parent.java_class.declared_method_smart "set#{classify(field_def.name.to_s)}".to_sym
@@ -27,10 +27,23 @@ module Mappum
           jtype = field_def.clazz
           jtype ||= "String"
           return to.to_java(jtype)
-        else param_type == java.util.Set.java_class
-          return java.util.LinkedHashSet.new(to)
+        elsif param_type <= java.util.Set.java_class
+          jset = java.util.LinkedHashSet.new to
+          unless param_type.class.kind_of? Module
+            jset = param_type.new to
+          end
+          return jset
+        elsif param_type <= java.util.Map.java_class 
+          jmap = java.util.LinkedHashMap.new
+          unless param_type.class.kind_of? Module
+            jmap = param_type.new
+          end
+          jmap.put_all to
+          return jmap
+        else
+          raise "#{param_type} of enumerable not supported"
         end
-      else 
+      else
         return to
       end
     end
