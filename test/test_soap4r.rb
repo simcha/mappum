@@ -22,7 +22,7 @@ class Erp::Person::Address
   include Equatable(:city, :street)
 end
 
-class TestExample < Test::Unit::TestCase
+class TestSoap4r < Test::Unit::TestCase
    def initialize(*args)
      super(*args)
      @rt = Mappum::XmlTransform.new

@@ -1,6 +1,13 @@
 module Mappum
    class MappumException < RuntimeError
      attr_accessor :from_name, :to_name, :from, :to, :from_root, :to_root, :mappum_backtrace 
+     def initialize(mess=nil)
+       super(mess)
+       if mess.kind_of? Exception
+         @caused_by = mess 
+         set_backtrace(mess.backtrace)
+       end
+     end
      def wrap(map, from, to)
         
         if map != nil and map != @map #don't store same maps twice
