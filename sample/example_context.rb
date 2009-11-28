@@ -9,11 +9,12 @@ Mappum.catalogue_add "Context" do
   map ERP::Person, CRM::Client do |p, c|
 
     `simple mapping`
-    map context.properties <=> c.title
+    map context.properties[:title] <=> c.title
+    map p.title <=>  context.properties[:title]
 
-#    `map with simple function call`
-#    map p.person_id << context.properties[:id].downcase
-#    map p.person_id.upcase >> context.properties[:id]
+    `map with simple function call`
+    map p.person_id << context.properties[:id].downcase
+    map context.properties[:id].upcase <=> c.id
     
     `dictionary use`
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}
@@ -83,10 +84,5 @@ Mappum.catalogue_add "Context" do
     map func >> c.updated do 
       Time.now
     end
-  end
-  `Example of submaps autodiscovery`
-  map :Group, :ClientList do |g,cl|
-    map g.main(ERP::Person) <=> cl.leader(CRM::Client)
-    map g.list(ERP::Person)[] <=> cl.clients(CRM::Client)[]
   end
 end
