@@ -75,7 +75,7 @@ class TestOpenStruct < Test::Unit::TestCase
     assert_equal("2", cli.sex_id)
     assert_equal("Skoryski", cli.surname)
     assert_equal("Victoria", cli.address.street)
-    assert_equal(["j@j.com", "k@k.com", "l@l.com"], cli.emails)
+    assert_equal({0 => "j@j.com", 1 => "k@k.com", 2 => "l@l.com"}, cli.emails)
     assert_equal(["21311231", "21311232"], cli.phones)
     assert_equal("09876567", cli.main_phone)
 
@@ -121,7 +121,7 @@ class TestOpenStruct < Test::Unit::TestCase
     per.main_phone.number ="09876567"
 
     cli = rt.transform(per,catalogue[:person])
-    assert_equal(["j@j.com", "l@l.com", nil], cli.emails)
+    assert_equal({0 => "j@j.com", 1 => "l@l.com", 2 =>  nil}, cli.emails)
 
     per2 = rt.transform(cli,catalogue[:client])
     assert_equal(per, per2)

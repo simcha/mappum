@@ -88,13 +88,13 @@ module Mappum
           #raise "Not an array: #{sm.from.name} inspect:" + from_value.inspect if sm.from.is_array and not from_value.kind_of?(Array)
           if is_array?(from_value)
             sm_v = sm.clone
-            if sm_v.from.is_array
+            if sm_v.from.array?
               sm_v.from = sm.from.clone
-              sm_v.from.is_array = false
+              sm_v.from.enum_type = nil
             end
-            if sm_v.to.is_array
+            if sm_v.to.array?
               sm_v.to = sm.to.clone
-              sm_v.to.is_array = false
+              sm_v.to.enum_type = nil
             end
             if sm_v.maps.empty?
 							sm_v.maps = submaps 
@@ -109,7 +109,7 @@ module Mappum
             to ||= @default_struct_class.new
             v_to = []
             #array values are assigned after return
-            v_to << get(to, sm.to, nil, options) unless sm.to.is_array and not sm.from.is_array
+            v_to << get(to, sm.to, nil, options) unless sm.to.array? and not sm.from.array?
             #nless one whants to update existing to array
             if sm.to_array_take == :first
               arr_v = get(to, sm.to, nil, options)
@@ -120,7 +120,7 @@ module Mappum
               v_to += arr_v  if not arr_v.nil?
             end
             #array values are assigned after return
-            v_to = [nil] if sm.to.is_array and not sm.from.is_array and v_to.empty?
+            v_to = [nil] if sm.to.array? and not sm.from.array? and v_to.empty?
             v_to.each do |v_t|
 				sm_v = sm
 				if sm_v.maps.empty?
@@ -139,11 +139,16 @@ module Mappum
         unless sm.dict.nil?
           to_value = sm.dict[to_value]
         end
-        if sm.to.is_array and not sm.from.is_array
+
+        if sm.to.array? and not sm.from.array?
           to_array = convert_from(get(to,sm.to,nil,options),sm.from)
-          to_array ||= []
-          to_array << to_value unless sm.to_array_take == :first or sm.to_array_take == :all
-          
+          to_array ||= sm.to.enum_type.new
+          to_array << to_value unless sm.to.enum_type != Array or sm.to_array_take == :first or sm.to_array_take == :all
+          #FIXME change array and hash to something sane! 
+          if sm.to.enum_type == Hash and sm.to.func[0..6] == "self.[]"
+            to_array.instance_eval("self.[]=#{sm.to.func[7..-2]},to_value)") 
+          end
+
           if to_array.empty? and sm.strip_empty?
             to_array = nil
           end
@@ -192,7 +197,7 @@ module Mappum
     
     protected
     def is_array?(obj)
-      return obj.kind_of?(Array)
+      return (obj.kind_of?(Array) or obj.kind_of?(Set) or obj.kind_of?(Hash))
     end
     def get(object, field, parent_field=nil,options={})
       if field.kind_of?(String) or field.kind_of?(Symbol)

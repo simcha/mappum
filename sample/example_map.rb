@@ -35,7 +35,7 @@ Mappum.catalogue_add "CRM-ERP" do
         name
       end
     end
-    `field to array and array to field`
+    `field to hash and hash to field`
     map p.email1 <=> c.emails[0]
     map p.email2 <=> c.emails[1]
     map p.email3 <=> c.emails[2]
