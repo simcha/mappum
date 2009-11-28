@@ -1,6 +1,7 @@
 module Mappum
    class MappumException < RuntimeError
      attr_accessor :from_name, :to_name, :from, :to, :from_root, :to_root, :mappum_backtrace , :caused_by
+     
      def initialize(mess=nil)
        super(mess)
        if mess.kind_of? Exception

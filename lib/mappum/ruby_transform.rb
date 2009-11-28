@@ -208,11 +208,11 @@ module Mappum
 					return object
 				end
 				#for fields targeted at parents go up the tree
-				if (not parent_field.nil?) and field.parent != parent_field
+				if (not parent_field.nil?) and (not parent_field.is_root) and field.parent != parent_field
 				  if object.respond_to?(:_mpum_parent)
 				    return get(object._mpum_parent, field, parent_field.parent, options)
-				  else
-				    raise "We hit an element with no parent: #{field.inspect}"
+				  else 
+				    raise "No parent for this object"
 				  end
 				end
 				field_name = field.name
