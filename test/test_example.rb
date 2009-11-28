@@ -70,6 +70,7 @@ class TestExample < Test::Unit::TestCase
     per.date_updated = Date.today
     per.spouse = ERP::Person.new
     per.spouse.name = "Linda"
+    per.properties = {:country => "Poland"}
     
     cli = rt.transform(per)
     
@@ -87,8 +88,9 @@ class TestExample < Test::Unit::TestCase
     assert_equal("Wife", cli.partners[0].type)
     assert_equal("Linda", cli.partners[1].name)
     assert_equal("Friend", cli.partners[1].type)
+    assert_equal("Poland", cli.country)
     assert(cli.updated.kind_of?(Time))
-    
+    pp cli
     per2 = rt.transform(cli)
     assert_equal(per, per2)
   end

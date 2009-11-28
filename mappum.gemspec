@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mappum}
-  s.version = "0.2.2"
+  s.version = "0.2.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jan Topi\305\204ski"]
-  s.date = %q{2009-11-13}
+  s.date = %q{2009-11-16}
   s.default_executable = %q{mapserver.rb}
   s.description = %q{}
   s.email = %q{jtopinski@chatka.org}
@@ -39,10 +39,12 @@ Gem::Specification.new do |s|
      "lib/mappum/dsl.rb",
      "lib/mappum/java_transform.rb",
      "lib/mappum/map.rb",
+     "lib/mappum/mappum_exception.rb",
      "lib/mappum/mapserver/mapgraph.rb",
      "lib/mappum/mapserver/mapserver.rb",
      "lib/mappum/mapserver/maptable.rb",
      "lib/mappum/mapserver/views/doc.erb",
+     "lib/mappum/mapserver/views/error.erb",
      "lib/mappum/mapserver/views/main.erb",
      "lib/mappum/mapserver/views/maptable.erb",
      "lib/mappum/mapserver/views/rubysource.erb",

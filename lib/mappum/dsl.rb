@@ -91,7 +91,7 @@ module Mappum
       #
       # Add comment to mapping.
       #
-      def `(str)
+      def `(str) #for bad colorizers add:```
         @comment ||= ""
         @comment += str
       end
@@ -127,7 +127,11 @@ module Mappum
         Mappum::DSL::Function.new        
       end
       def tree(clazz)
-        return Field.new(nil, nil, clazz)
+        return Mappum::DSL::Field.new(nil, nil, clazz)
+      end
+      def context
+        fld = Mappum::DSL::ContextField.new
+        return fld
       end
     end
     class RootMap < Map
@@ -205,7 +209,7 @@ module Mappum
         end
         @def.submap_alias = attr[0][1][:map] if attr[0].size > type_size
                     
-      end   
+      end 
     end
     #Base class for all mapped elements eg. fields, constants
     class Mappet
@@ -241,12 +245,11 @@ module Mappum
     
     class Field < Mappet
       def initialize(parent, name, clazz, placeholder = false, src_ref = nil)
-        @def =  Mappum::Field.new
+        @def ||=  Mappum::Field.new
         @def.parent = parent
         @def.name = name
         @def.clazz = clazz
         @def.is_array = false
-        @def.is_root = false
         @def.is_root = false
         @def.is_placeholder = placeholder
         @def.src_ref = src_ref
@@ -302,6 +305,12 @@ module Mappum
           @def.func += ".#{symbol}(#{arguments.join(", ")})"
         end
         return self
+      end
+    end
+    class ContextField < Field
+      def initialize
+        @def = Mappum::ContextField.new
+        super(nil, :context, nil)
       end
     end
   end

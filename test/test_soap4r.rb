@@ -8,8 +8,8 @@ gem 'facets'
 require 'facets/equatable'
 require 'soap/marshal'
 
-wl = Mappum::WorkdirLoader.new("sample/server/schema", "sample/server/map")
-wl.generate_and_require   
+$wl = Mappum::WorkdirLoader.new("sample/server/schema", "sample/server/map")
+$wl.generate_and_require   
 
 class Erp::Person
   include Equatable(:title, :person_id, :name, :surname, :sex, :email1, 
@@ -22,7 +22,7 @@ class Erp::Person::Address
   include Equatable(:city, :street)
 end
 
-class TestExample < Test::Unit::TestCase
+class TestSoap4r < Test::Unit::TestCase
    def initialize(*args)
      super(*args)
      @rt = Mappum::XmlTransform.new
@@ -104,5 +104,8 @@ class TestExample < Test::Unit::TestCase
 
     per2 = rt.transform(cli)
     assert_equal(per, per2)
+  end
+  def test_tree
+    $wl.defined_element_trees
   end
 end

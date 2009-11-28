@@ -23,6 +23,7 @@
         </xsd:complexType>
         </xsd:element> 
       </xsd:sequence> 
+      <xsd:attribute name="key" type="xsd:long"/>
     </xsd:complexType>
   </xsd:element> 
 </xsd:schema>

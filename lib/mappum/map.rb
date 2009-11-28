@@ -143,7 +143,7 @@ module Mappum
         [map_r2l, map_l2r]
       else
         [self]
-      end
+      end 
     end
     def simple?
         @func.nil? && @dict.nil? && @desc.nil? && 
@@ -172,6 +172,8 @@ module Mappum
     def placeholder?
       is_placeholder
     end
+  end
+  class ContextField < Field
   end
   class Constant <  Struct.new(:value,:parent) 
     def parent

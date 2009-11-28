@@ -24,8 +24,11 @@ module Mappum
     #
     # Method for transforming from object using map to "to" object.
     #
-    def transform(from, map=nil, to=nil)
+    def transform(from, map=nil, to=nil, options={})
       begin
+      
+      options ||= {}
+      
       raise RuntimeError.new("Map catalogue is empty!") if @map_catalogue.nil?
       
       map ||= @map_catalogue[from.class]
@@ -42,7 +45,7 @@ module Mappum
         begin
         from_value, to_value = nil, nil
         
-        from_value = get(from, sm.from, map.from) 
+        from_value = get(from, sm.from, map.from, options) 
 
         # skip to next mapping on false :map_when function
         next unless sm.map_when.nil? or sm.map_when.call(from_value)
@@ -97,23 +100,23 @@ module Mappum
 							sm_v.maps = submaps 
 							sm_v.maps.each{|m| m.from.parent = sm_v.from}
 							#don't add parent we need separation
-							to_value = from_value.collect{|v| transform(v, sm_v)}
+							to_value = from_value.collect{|v| transform(v, sm_v, nil, pass_options(options))}
 						else
-							to_value = from_value.collect{|v| transform(add_parent(v, from), sm_v)}
+							to_value = from_value.collect{|v| transform(add_parent(v, from), sm_v, nil, pass_options(options))}
 						end
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
             v_to = []
             #array values are assigned after return
-            v_to << get(to, sm.to) unless sm.to.is_array and not sm.from.is_array
+            v_to << get(to, sm.to, nil, options) unless sm.to.is_array and not sm.from.is_array
             #nless one whants to update existing to array
             if sm.to_array_take == :first
-              arr_v = get(to, sm.to)
+              arr_v = get(to, sm.to, nil, options)
               v_to << arr_v[0]  if not arr_v.nil?
             end
             if sm.to_array_take == :all
-              arr_v = get(to, sm.to)
+              arr_v = get(to, sm.to, nil, options)
               v_to += arr_v  if not arr_v.nil?
             end
             #array values are assigned after return
@@ -125,9 +128,9 @@ module Mappum
 				  sm_v.maps = submaps
 				  sm_v.maps.each{|m| m.from.parent = sm_v.from}
 				  #don't add parent we need separation
-				  to_value = transform(from_value, sm_v, v_t)
+				  to_value = transform(from_value, sm_v, v_t, pass_options(options))
 				else
-				  to_value = transform(add_parent(from_value, from), sm_v, v_t)
+				  to_value = transform(add_parent(from_value, from), sm_v, v_t, pass_options(options))
 				end
 		    end
           end
@@ -137,7 +140,7 @@ module Mappum
           to_value = sm.dict[to_value]
         end
         if sm.to.is_array and not sm.from.is_array
-          to_array = convert_from(get(to,sm.to),sm.from)
+          to_array = convert_from(get(to,sm.to,nil,options),sm.from)
           to_array ||= []
           to_array << to_value unless sm.to_array_take == :first or sm.to_array_take == :all
           
@@ -191,22 +194,25 @@ module Mappum
     def is_array?(obj)
       return obj.kind_of?(Array)
     end
-    def get(object, field, parent_field=nil)
-		  if field.kind_of?(String) or field.kind_of?(Symbol)
+    def get(object, field, parent_field=nil,options={})
+      if field.kind_of?(String) or field.kind_of?(Symbol)
 		    field_name = field
 		  else
 				unless field.respond_to?(:name)
 					return field.value
 				end
+        if field.kind_of?(ContextField)
+          return options[:context]
+        end
 				if field.name.nil? or object.nil?
 					return object
 				end
 				#for fields targeted at parents go up the tree
 				if (not parent_field.nil?) and field.parent != parent_field
 				  if object.respond_to?(:_mpum_parent)
-				    return get(object._mpum_parent, field, parent_field.parent)
-				  else 
-				    raise "We hit an element with no parent: #{object.inspect}"
+				    return get(object._mpum_parent, field, parent_field.parent, options)
+				  else
+				    raise "We hit an element with no parent: #{field.inspect}"
 				  end
 				end
 				field_name = field.name
@@ -236,6 +242,9 @@ module Mappum
       end
       value._mpum_parent = parent
       return value
+    end
+    def pass_options(options)
+      return options
     end
   end
   class OpenStruct < OpenStruct

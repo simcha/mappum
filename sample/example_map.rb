@@ -52,6 +52,9 @@ Mappum.catalogue_add "CRM-ERP" do
       map a.number <=> b.self
     end
 
+    `Hash to field`
+    map p.properties[:country] <=> c.country
+
     `subobject to fields`
     map p.main_phone(ERP::Phone) <=> c.self do |a, b|
       map a.number <=> b.main_phone

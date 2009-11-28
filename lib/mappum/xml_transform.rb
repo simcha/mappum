@@ -198,12 +198,12 @@ module Mappum
     def initialize(*args)
       super(*args)
     end
-    def get(object, field, parent_field=nil)
+    def get(object, field, parent_field=nil, options={})
       begin
-        super(object, field, parent_field)
+        super(object, field, parent_field, options)
       rescue NoMethodError
         begin
-          super(object, XSD::CodeGen::GenSupport.safemethodname(field.name.to_s).to_sym, parent_field)
+          super(object, XSD::CodeGen::GenSupport.safemethodname(field.name.to_s).to_sym, parent_field, options)
         rescue NoMethodError
           #for dynamic xml nil value == no methond
           if object.kind_of?(SOAP::Mapping::Object)
@@ -316,16 +316,28 @@ module Mappum
       name ||= schema_definition.class_for
       is_array = false
       is_array = schema_definition.as_array? if schema_definition.respond_to?(:as_array?)
+
+      subelems = nil
+			mapped_class = schema_definition.mapped_class if schema_definition.respond_to?(:mapped_class)
+
       if schema_definition.respond_to?(:elements) and not schema_definition.elements.nil?
-        subelems = []
+        subelems ||= []
         schema_definition.elements.each do |element|
           subelems << defined_element_trees(element)
         end
-        subelems.sort!
-        return TreeElement.new(name, subelems, is_array, nil)
+        mapped_class = nil
       end
-
-      return TreeElement.new(name, nil,is_array,schema_definition.mapped_class)
+			if schema_definition.respond_to?(:attributes) and not schema_definition.attributes.nil?
+			      
+			  subelems ||= []
+			  schema_definition.attributes.each do |qname, type|
+          subelems << TreeElement.new("xmlattr_#{qname.name}", nil,false,type)
+        end
+			end
+			
+			subelems.sort! unless subelems.nil?
+			
+      return TreeElement.new(name, subelems,is_array,mapped_class)
     end
     #
     # Remove tmpdir
