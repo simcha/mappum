@@ -130,7 +130,7 @@ module Mappum
         return Mappum::DSL::Field.new(nil, nil, clazz)
       end
       def context
-        fld = Mappum::DSL::ContextField.new
+        fld = Mappum::DSL::Context.new
         return fld
       end
     end
@@ -315,10 +315,10 @@ module Mappum
         return self
       end
     end
-    class ContextField < Field
+    class Context < Field
       def initialize
-        @def = Mappum::ContextField.new
-        super(nil, :context, nil)
+        @def = Mappum::Context.new
+        @def.is_root
       end
     end
   end

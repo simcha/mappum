@@ -37,10 +37,10 @@ module Mappum
      def add_to_mappum_backtrace(map)
        if @mappum_backtrace.nil?
          @mappum_backtrace = []
-         @mappum_backtrace << map.from.src_ref
-         @mappum_backtrace << map.to.src_ref
+         @mappum_backtrace << map.from.src_ref if map.from.respond_to?(:src_ref)
+         @mappum_backtrace << map.to.src_ref if map.to.respond_to?(:src_ref)
        end
-       @mappum_backtrace << map.src_ref
+       @mappum_backtrace << map.src_ref if map.respond_to?(:src_ref)
      end
    end
 end

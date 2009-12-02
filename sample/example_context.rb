@@ -12,9 +12,10 @@ Mappum.catalogue_add "Context" do
     map context.properties[:title] <=> c.title
     map p.title <=>  context.properties[:title]
 
+    map p.title >> context.properties[:new_title]
     `map with simple function call`
     map p.person_id << context.properties[:id].downcase
-    map context.properties[:id].upcase <=> c.id
+    map context.properties[:id].upcase >> c.id
     
     `dictionary use`
     map p.sex <=> c.sex_id, :dict => {"F" => "1", "M" => "2"}

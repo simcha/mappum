@@ -121,9 +121,7 @@ module Mappum
         map_r2l.when_r2l, map_r2l.when_l2r = nil, nil
         map_r2l.to_array_take = self.to_array_take_r2l
         map_r2l.to_array_take_r2l, map_r2l.to_array_take_l2r = nil, nil
-        map_r2l.maps = self.maps.select do |m|
-          m.to.parent == map_r2l.to
-        end
+
         
         map_r2l.dict = self.dict.invert unless self.dict.nil?
   
@@ -136,8 +134,12 @@ module Mappum
         map_l2r.when_r2l, map_l2r.when_l2r = nil, nil
         map_l2r.to_array_take = self.to_array_take_l2r
         map_l2r.to_array_take_r2l, map_l2r.to_array_take_l2r = nil, nil
+        
+        map_r2l.maps = self.maps.select do |m|
+          m.to.parent == map_r2l.to or m.to.parent.kind_of? Context
+        end
         map_l2r.maps = self.maps.select do |m|
-          m.to.parent == map_l2r.to
+          m.to.parent == map_l2r.to or m.to.parent.kind_of? Context
         end
   
         [map_r2l, map_l2r]
@@ -173,7 +175,10 @@ module Mappum
       is_placeholder
     end
   end
-  class ContextField < Field
+  class Context < Field
+    def is_root
+      true
+    end
   end
   class Constant <  Struct.new(:value,:parent) 
     def parent
@@ -192,6 +197,9 @@ module Mappum
     end
     def func
       nil      
+    end
+    def name
+      nil
     end
     def value
       nil

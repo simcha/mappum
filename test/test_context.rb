@@ -35,6 +35,7 @@ class TestExample < Test::Unit::TestCase
     
     cli = rt.transform(per,nil,nil,{:context => ctx})
     
+    assert_equal("sir", ctx.properties[:new_title])
     assert_equal("sir", cli.title)
     assert_equal("ASDDSA", cli.id)
     assert_equal("2", cli.sex_id)

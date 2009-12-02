@@ -11,12 +11,24 @@ module Mappum
       super(*args)
     end
     def transform(from, map=nil, to=nil, options={})
-
-      if map.kind_of?(Java::JavaUtil::Map)
-        options = map
-        map = nil
+      begin
+        if map.kind_of?(Java::JavaUtil::Map)
+          options = map
+          map = nil
+        end
+        super(from, map, to, options) 
+      rescue MappumException => me
+        jme = Java::pl::ivmx::mappum::JavaMappumException.new(me)
+        jme.from_name = me.from_name 
+        jme.to_name = me.to_name 
+        jme.from = me.from
+        jme.to = me.to
+        jme.from_root = me.from_root
+        jme.to_root = me.to_root 
+        jme.mappum_backtrace = me.mappum_backtrace
+        
+        raise jme
       end
-      super(from, map, to, options) 
     end
     protected
     def is_array?(obj)
@@ -27,20 +39,23 @@ module Mappum
       if to.kind_of? Array or to.kind_of? Hash or to.kind_of? Set then
         param_type = nil
         unless parent.nil?
-          jmethod = parent.java_class.declared_method_smart "set#{classify(field_def.name.to_s)}".to_sym
-          param_type = jmethod.parameter_types[0]
+          jclass = parent.java_class
+          unless jclass.nil?
+            jmethod = jclass.declared_method_smart "set#{classify(field_def.name.to_s)}".to_sym
+            param_type = jmethod.parameter_types[0]
+          end
         end
-        if param_type.nil? or param_type.array?
+        if (param_type.nil? and to.kind_of? Array) or (not param_type.nil? and param_type.array?)
           jtype = field_def.clazz
           jtype ||= "String"
           return to.to_java(jtype)
-        elsif param_type <= java.util.Set.java_class
+        elsif (param_type.nil? and to.kind_of? Set) or (not param_type.nil? and param_type <= java.util.Set.java_class)
           jset = java.util.LinkedHashSet.new to
           unless param_type.class.kind_of? Module
             jset = param_type.new to
           end
           return jset
-        elsif param_type <= java.util.Map.java_class 
+        elsif (param_type.nil? and to.kind_of? Hash) or (not param_type.nil? and param_type <= java.util.Map.java_class)
           jmap = java.util.LinkedHashMap.new
           unless param_type.class.kind_of? Module
             jmap = param_type.new

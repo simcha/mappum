@@ -47,6 +47,30 @@ public class MappumTest extends TestCase {
     wl.cleanup();
   }
   
+  public void testError(){
+    MappumApi mp = new MappumApi();
+    mp.loadMaps();
+    JavaTransform jt = mp.getJavaTransform("Error");
+
+    Person per = newPerson();
+    try {
+      jt.transform(per);     
+      fail("Exception shall be thrown");
+    } catch (JavaMappumException e) {
+      assertTrue(e.getMappumBacktrace().get(0).indexOf("error_map.rb:") > -1);
+      assertEquals("/address/wrong", e.getFromName());
+      assertEquals("/address/name", e.getToName());
+
+      assertEquals(per.getAddress(), e.getFrom());
+      assertEquals(null, e.getTo());
+      //FIXME
+      //assertEquals(per, e.getFromRoot());
+      assertEquals(null, e.getToRoot());
+      
+    }
+    
+  }
+  
   public void testContext(){
     MappumApi mp = new MappumApi();
     mp.loadMaps();
@@ -56,11 +80,11 @@ public class MappumTest extends TestCase {
     Client cli = null;
     Person person = null;
    
-    HashMap props = new HashMap();
+    HashMap<String, String> props = new HashMap<String, String>();
     props.put("Title", "Sir");
     Context context = new Context();
     context.setProperties(props);
-    HashMap options = new HashMap();
+    HashMap<String, Object> options = new HashMap<String, Object>();
     options.put("context", context);
    
     cli = (Client) jt.transform(per, options);     
@@ -70,7 +94,9 @@ public class MappumTest extends TestCase {
     assertEquals("Skoryski",cli.getSurname());
     assertEquals("M",person.getSex());
     assertEquals("Skory",person.getName());
-    assertEquals("Sir",person.getTitle());
+    assertEquals("sir",person.getTitle());
+    assertEquals("Skoryski",context.getProperties().get("Name"));
+    
   }
   
   public void testTransform(){
@@ -82,10 +108,18 @@ public class MappumTest extends TestCase {
     Client cli = null;
     Person person = null;
     
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put("Title", "Sir");
+    Context context = new Context();
+    context.setProperties(props);
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("context", context);
+    
     long time = System.currentTimeMillis();
     for (int i = 0; i < 200; i++) {
-      cli = (Client) jt.transform(per);     
-      person = (Person) jt.transform(cli);
+
+      cli = (Client) jt.transform(per, options);     
+      person = (Person) jt.transform(cli, options);
     }
     time = System.currentTimeMillis()-time;
     System.out.println(time);
@@ -132,11 +166,17 @@ public class MappumTest extends TestCase {
     Runnable  task = new Runnable(){
       
       public void run() {
+        HashMap<String, String> props = new HashMap<String, String>();
+        props.put("Title", "Sir");
+        Context context = new Context();
+        context.setProperties(props);
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        options.put("context", context);
         
         Person per = newPerson();
         for (int j = 0; j < loops; j++) {
-          Client cli = (Client) jt.transform(per); 
-          Person person = (Person) jt.transform(cli);
+          Client cli = (Client) jt.transform(per, options); 
+          Person person = (Person) jt.transform(cli, options);
         }
       }
       

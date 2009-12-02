@@ -12,6 +12,8 @@ Mappum.catalogue_add do
     #simple mapping
     map p.title <=> context.properties["Title"]
 
+    map context.properties["Name"] <<  c.surname
+    
     #map with simple function call
     map p.person_id << c.cid.downcase
     map p.person_id.upcase >> c.cid

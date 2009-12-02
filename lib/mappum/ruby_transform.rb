@@ -42,7 +42,7 @@ module Mappum
 
       all_nils = true
       map.maps.each do |sm|
-        begin
+       begin
         from_value, to_value = nil, nil
         
         from_value = get(from, sm.from, map.from, options) 
@@ -146,7 +146,8 @@ module Mappum
           to_array << to_value unless sm.to.enum_type != Array or sm.to_array_take == :first or sm.to_array_take == :all
           #FIXME change array and hash to something sane! 
           if sm.to.enum_type == Hash and sm.to.func[0..6] == "self.[]"
-            to_array.instance_eval("self.[]=#{sm.to.func[7..-2]},to_value)") 
+            bad_func = "self.[]=#{sm.to.func[7..-2]},to_value)"
+            to_array.instance_eval(bad_func) 
           end
 
           if to_array.empty? and sm.strip_empty?
@@ -158,9 +159,13 @@ module Mappum
           if sm.to.name.nil?
             to = convert_to(to_array, sm.to)
           else
-            to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
-            to ||= @default_struct_class.new
-            to.send("#{sm.to.name}=", convert_to(to_array, sm.to, to)) unless to_array.nil?
+            if sm.to.parent.kind_of? Context
+              get_context(options).send("#{sm.to.name}=", convert_to(to_array, sm.to, get_context(options))) unless to_array.nil?
+            else 
+              to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+              to ||= @default_struct_class.new
+              to.send("#{sm.to.name}=", convert_to(to_array, sm.to, to)) unless to_array.nil?
+            end
           end
         else
 
@@ -173,9 +178,13 @@ module Mappum
           if sm.to.name.nil?
             to ||= to_value
           else
-            to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
-            to ||= @default_struct_class.new 
-            to.send("#{sm.to.name}=", convert_to(to_value, sm.to, to)) unless to_value.nil?
+            if sm.to.parent.kind_of? Context
+              get_context(options).send("#{sm.to.name}=", convert_to(to_value, sm.to, get_context(options))) unless to_value.nil?
+            else 
+             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
+             to ||= @default_struct_class.new 
+             to.send("#{sm.to.name}=", convert_to(to_value, sm.to, to)) unless to_value.nil?
+            end
           end
         end
        rescue Exception => e
@@ -206,10 +215,8 @@ module Mappum
 				unless field.respond_to?(:name)
 					return field.value
 				end
-        if field.kind_of?(ContextField)
-          ctx = options[:context]
-          ctx ||= options["context"]
-          return ctx 
+        if field.parent.kind_of?(Context)
+          object = get_context(options)
         end
 				if field.name.nil? or object.nil?
 					return object
@@ -252,6 +259,15 @@ module Mappum
     end
     def pass_options(options)
       return options
+    end
+    def get_context(options)
+      ctx = options[:context]
+      ctx ||= options["context"]
+      if ctx.nil?
+        puts "WARN: Context initialized with #{@default_struct_class}" 
+        ctx = @default_struct_class.new
+      end
+      return ctx
     end
   end
   class OpenStruct < OpenStruct
