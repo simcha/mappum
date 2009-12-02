@@ -157,7 +157,7 @@ DOT
               pname, path, level = get_name_and_path(element.parent, level) 
             end
             path = "#{path}v#{name}".gsub(":","vv") unless name.nil?
-            name = "#{name}[]" if not name.nil? and element.is_array
+            name = "#{name}[]" if not name.nil? and element.array?
             return name, path, level
         end
       end 
