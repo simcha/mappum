@@ -280,7 +280,6 @@ module Mappum
       ctx = options[:context] 
       ctx ||= options["context"]
       if ctx.nil?
-        puts "WARN: Context initialized with #{@default_struct_class}" 
         ctx = @default_struct_class.new
       end
       return ctx
