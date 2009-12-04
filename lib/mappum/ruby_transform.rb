@@ -4,6 +4,8 @@ require 'mappum'
 require 'ostruct'
 require 'mappum/autoconv_catalogue'
 require 'mappum/mappum_exception'
+require 'mappum/map_space'
+
 
 module Mappum
   #
@@ -26,8 +28,15 @@ module Mappum
     #
     def transform(from, map=nil, to=nil, options={})
       begin
-      
+
       options ||= {}
+      
+      map_space_added = false
+      if options["map_space"].nil?
+        map_space_added = true
+        options["map_space"] = Mappum::MapSpace.new
+        options["map_space"].context = get_context(options)
+      end
       
       raise RuntimeError.new("Map catalogue is empty!") if @map_catalogue.nil?
       
@@ -51,7 +60,7 @@ module Mappum
         next unless sm.map_when.nil? or sm.map_when.call(from_value)
 
         unless sm.func.nil? or (not sm.func_on_nil? and from_value.nil?)
-          from_value = sm.func.call(from_value)
+          from_value = options["map_space"].instance_exec(from_value,&sm.func)
         end
         unless sm.from.func.nil? or from_value.nil?
           mappum_block = sm.from.block
@@ -147,7 +156,7 @@ module Mappum
           #FIXME change array and hash to something sane! 
           if sm.to.enum_type == Hash and sm.to.func[0..6] == "self.[]"
             bad_func = "self.[]=#{sm.to.func[7..-2]},to_value)"
-            to_array.instance_eval(bad_func) 
+            to_array.instance_eval(bad_func)
           end
 
           if to_array.empty? and sm.strip_empty?
@@ -192,6 +201,13 @@ module Mappum
         e.wrap(sm, from_value, to_value)
         raise e
        end 
+      end
+      if map_space_added
+        if options.respond_to? :delete
+          options.delete("map_space") 
+        else
+          options["map_space"]=nil
+        end
       end
       if all_nils and map.strip_empty?
         return nil
@@ -261,7 +277,7 @@ module Mappum
       return options
     end
     def get_context(options)
-      ctx = options[:context]
+      ctx = options[:context] 
       ctx ||= options["context"]
       if ctx.nil?
         puts "WARN: Context initialized with #{@default_struct_class}" 
