@@ -106,13 +106,13 @@ module Mappum
               sm_v.to.enum_type = nil
             end
             if sm_v.maps.empty?
-							sm_v.maps = submaps 
-							sm_v.maps.each{|m| m.from.parent = sm_v.from}
-							#don't add parent we need separation
-							to_value = from_value.collect{|v| transform(v, sm_v, nil, pass_options(options))}
-						else
-							to_value = from_value.collect{|v| transform(add_parent(v, from), sm_v, nil, pass_options(options))}
-						end
+              sm_v.maps = submaps 
+              sm_v.maps.each{|m| m.from.parent = sm_v.from}
+              #don't add parent we need separation
+              to_value = from_value.collect{|v| transform(v, sm_v, nil, pass_options(options))}
+            else
+              to_value = from_value.collect{|v| transform(add_parent(v, from), sm_v, nil, pass_options(options))}
+            end
           else
             to ||= map.to.clazz.new unless @force_open_struct or map.to.clazz.nil? or map.to.clazz.kind_of?(Symbol)
             to ||= @default_struct_class.new
@@ -131,17 +131,17 @@ module Mappum
             #array values are assigned after return
             v_to = [nil] if sm.to.array? and not sm.from.array? and v_to.empty?
             v_to.each do |v_t|
-				sm_v = sm
-				if sm_v.maps.empty?
-				  sm_v = sm.clone
-				  sm_v.maps = submaps
-				  sm_v.maps.each{|m| m.from.parent = sm_v.from}
-				  #don't add parent we need separation
-				  to_value = transform(from_value, sm_v, v_t, pass_options(options))
-				else
-				  to_value = transform(add_parent(from_value, from), sm_v, v_t, pass_options(options))
-				end
-		    end
+        sm_v = sm
+        if sm_v.maps.empty?
+          sm_v = sm.clone
+          sm_v.maps = submaps
+          sm_v.maps.each{|m| m.from.parent = sm_v.from}
+          #don't add parent we need separation
+          to_value = transform(from_value, sm_v, v_t, pass_options(options))
+        else
+          to_value = transform(add_parent(from_value, from), sm_v, v_t, pass_options(options))
+        end
+        end
           end
 
         end
@@ -226,37 +226,37 @@ module Mappum
     end
     def get(object, field, parent_field=nil,options={})
       if field.kind_of?(String) or field.kind_of?(Symbol)
-		    field_name = field
-		  else
-				unless field.respond_to?(:name)
-					return field.value
-				end
+        field_name = field
+      else
+        unless field.respond_to?(:name)
+          return field.value
+        end
         if field.parent.kind_of?(Context)
           object = get_context(options)
         end
-				if field.name.nil? or object.nil?
-					return object
-				end
-				#for fields targeted at parents go up the tree
-				if (not parent_field.nil?) and (not parent_field.is_root) and field.parent != parent_field
-				  if object.respond_to?(:_mpum_parent)
-				    return get(object._mpum_parent, field, parent_field.parent, options)
-				  else 
-				    raise "No parent for this object"
-				  end
-				end
-				field_name = field.name
-			end
-			begin
-				return object.send(field_name)
-			rescue NoMethodError => e
-			#for open structures field will be defined later
-			if object.kind_of?(@default_struct_class)
-				return nil
-			else
-				raise e
-			end
-	   end
+        if field.name.nil? or object.nil?
+          return object
+        end
+        #for fields targeted at parents go up the tree
+        if (not parent_field.nil?) and (not parent_field.is_root) and field.parent != parent_field
+          if object.respond_to?(:_mpum_parent)
+            return get(object._mpum_parent, field, parent_field.parent, options)
+          else 
+            raise "No parent for this object"
+          end
+        end
+        field_name = field.name
+      end
+      begin
+        return object.send(field_name)
+      rescue NoMethodError => e
+      #for open structures field will be defined later
+      if object.kind_of?(@default_struct_class)
+        return nil
+      else
+        raise e
+      end
+     end
     end
     def convert_to(to, field_def, parent)
       return to

@@ -170,7 +170,7 @@ module Mappum
           raise e
       end
       
-	  return to_xml_string(transformed, map, to_qname, soap)
+    return to_xml_string(transformed, map, to_qname, soap)
     end
     def to_xml_string(transformed, map=nil, to_qname=nil, soap=false)
        to_mapper = XSD::Mapping::Mapper.find_mapper_for_class(transformed.class)
@@ -318,7 +318,7 @@ module Mappum
       is_array = schema_definition.as_array? if schema_definition.respond_to?(:as_array?)
 
       subelems = nil
-			mapped_class = schema_definition.mapped_class if schema_definition.respond_to?(:mapped_class)
+      mapped_class = schema_definition.mapped_class if schema_definition.respond_to?(:mapped_class)
 
       if schema_definition.respond_to?(:elements) and not schema_definition.elements.nil?
         subelems ||= []
@@ -327,16 +327,16 @@ module Mappum
         end
         mapped_class = nil
       end
-			if schema_definition.respond_to?(:attributes) and not schema_definition.attributes.nil?
-			      
-			  subelems ||= []
-			  schema_definition.attributes.each do |qname, type|
+      if schema_definition.respond_to?(:attributes) and not schema_definition.attributes.nil?
+            
+        subelems ||= []
+        schema_definition.attributes.each do |qname, type|
           subelems << TreeElement.new("xmlattr_#{qname.name}", nil,false,type)
         end
-			end
-			
-			subelems.sort! unless subelems.nil?
-			
+      end
+      
+      subelems.sort! unless subelems.nil?
+      
       return TreeElement.new(name, subelems,is_array,mapped_class)
     end
     #
