@@ -126,6 +126,9 @@ module Mappum
       def func
         Mappum::DSL::Function.new        
       end
+      def const(cst)
+        Mappum::DSL::Constant.new(cst)        
+      end
       def tree(clazz)
         return Mappum::DSL::Field.new(nil, nil, clazz)
       end
