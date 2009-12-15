@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mappum}
-  s.version = "0.2.4"
+  s.version = "0.2.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jan Topi\305\204ski"]
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
      "VERSION",
      "bin/mapserver.rb",
      "java-api/pom.xml",
+     "java-api/src/main/java/pl/ivmx/mappum/JavaMappumException.java",
      "java-api/src/main/java/pl/ivmx/mappum/JavaTransform.java",
      "java-api/src/main/java/pl/ivmx/mappum/MappumApi.java",
      "java-api/src/main/java/pl/ivmx/mappum/TreeElement.java",
@@ -33,12 +34,14 @@ Gem::Specification.new do |s|
      "java-api/src/test/java/iv/Client.java",
      "java-api/src/test/java/iv/Person.java",
      "java-api/src/test/java/pl/ivmx/mappum/MappumTest.java",
+     "java-api/src/test/resources/map/error_map.rb",
      "java-api/src/test/resources/map/example_map.rb",
      "lib/mappum.rb",
      "lib/mappum/autoconv_catalogue.rb",
      "lib/mappum/dsl.rb",
      "lib/mappum/java_transform.rb",
      "lib/mappum/map.rb",
+     "lib/mappum/map_space.rb",
      "lib/mappum/mappum_exception.rb",
      "lib/mappum/mapserver/mapgraph.rb",
      "lib/mappum/mapserver/mapserver.rb",
@@ -59,6 +62,7 @@ Gem::Specification.new do |s|
      "sample/crm_client.xsd",
      "sample/erp.rb",
      "sample/erp_person.xsd",
+     "sample/example_context.rb",
      "sample/example_conversions.rb",
      "sample/example_map.rb",
      "sample/example_notypes.rb",
@@ -70,6 +74,7 @@ Gem::Specification.new do |s|
      "sample/server/mapserver.sh",
      "sample/server/schema/crm_client.xsd",
      "sample/server/schema/erp/erp_person.xsd",
+     "test/test_context.rb",
      "test/test_conversions.rb",
      "test/test_example.rb",
      "test/test_openstruct.rb",
@@ -88,7 +93,8 @@ Gem::Specification.new do |s|
      "test/test_when.rb",
      "test/test_conversions.rb",
      "test/test_xml_any.rb",
-     "test/test_soap4r.rb"
+     "test/test_soap4r.rb",
+     "test/test_context.rb"
   ]
 
   if s.respond_to? :specification_version then
